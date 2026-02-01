@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 250px;
+      padding: 10px;
+    }
+    #message {
+      display: none;
+      font-size: 16px;
+      font-weight: bold;
+      color: green;
+      text-align: center;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+      width: 250px;
+      text-align: center;
+    }
+
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+
+
+    p {
+      margin-top: 0;
+      color: #555;
+    }
+
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+
+    button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+
+  </style>
+</head>
+<body>
+  <div id="form">
+    <h3>SafeSurf Enabled</h3>
+    <p>Browsing safely</p>
+    <input type="text" id="jwtToken" placeholder="Enter token" />
+    <button id="saveToken">Save</button>
+  </div>
+
+
+  <div id="success-message" style="display: none;">Hello user! Your protection is now active.</div>
+
+
+  <script type="module" src="popup.js"></script>
+
+
+  <!-- <script src="popup.js"></script> -->
+</body>
+</html>
