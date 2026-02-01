@@ -265,6 +265,44 @@ export const DashboardPreview = ({ childEmail }) => {
   };
 
 
+  const handleUnblockWebsite = async (domain) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKENDURL}/api/parent/children/unblock`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ url: domain, email: childEmail }),
+        }
+      );
+
+      if (res.ok) {
+        toast({
+          title: "Website unblocked",
+          description: `${domain} has been removed from blocked sites`,
+        });
+        setBlockedWebsites((prev) => prev.filter((site) => site.domain !== domain));
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to unblock website",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Error unblocking website:", err);
+      toast({
+        title: "Error",
+        description: "Failed to unblock website",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="bg-[#171723] rounded-xl shadow-lg border border-[#2A2A3C] overflow-hidden relative">
       <div className="scanline"></div>
@@ -305,9 +343,6 @@ export const DashboardPreview = ({ childEmail }) => {
                 </h3>
                 <span className="text-xs text-cyan-400">Today</span>
               </div>
-              {/* <div className="h-40 bg-[#11111D] rounded-lg flex items-center justify-center">
-                <Activity className="h-8 w-8 text-cipher-purple opacity-80" />
-              </div> */}
               {childEmail && <div className="h-40 bg-[#11111D] rounded-lg p-2">
                 <RealtimeChart />
               </div>}
@@ -332,11 +367,14 @@ export const DashboardPreview = ({ childEmail }) => {
                   alerts.map((alert, index) => (
                     <div
                       key={index}
-                      className="bg-[#2D1A1A] text-red-400 p-3 rounded-lg text-sm flex items-start border border-red-900/50"
+                      className="bg-[#2D1A1A] text-red-400 p-3 rounded-lg text-sm flex flex-col items-start border border-red-900/50"
                     >
-                      <Bell className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                      <span>{<span>{new Date(alert.timestamp).toLocaleString()}</span>
-                      }</span>
+                      <div className="flex items-center mb-1">
+                        <Bell className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="font-semibold">Incognito Alert</span>
+                      </div>
+                      <span className="mb-1 text-xs break-all">{alert.url || "Unknown URL"}</span>
+                      <span className="text-xs text-red-400/70">{new Date(alert.timestamp).toLocaleString()}</span>
                     </div>
                   ))
                 ) : (
@@ -416,45 +454,6 @@ export const DashboardPreview = ({ childEmail }) => {
               </ul>
             </div>
 
-
-            {/* Screen Time Management */}
-            {/* <div className="dashboard-card col-span-3 md:col-span-2">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-semibold text-white neon-text">
-                  Screen Time Management
-                </h3>
-                <span className="text-xs text-cyan-400">
-                  {formatTime(screenTime)} / {formatTime(dailyLimit)}
-                </span>
-              </div>
-              <div className="bg-[#11111D] p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <Clock className="h-5 w-5 text-cyan-400" />
-                  <div className="w-full mx-4 bg-[#2A2A3C] h-2 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-cyan-400 transition-all duration-500"
-                      style={{ width: `${percentUsed}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-white">{percentUsed}%</span>
-                </div>
-                <div className="mt-4 flex space-x-3">
-                  <button
-                    onClick={handleReduceTime}
-                    className="text-xs bg-[#1E1E2C] text-white px-3 py-1 rounded hover:bg-[#2A2A3C]"
-                  >
-                    - 30 min
-                  </button>
-                  <button
-                    onClick={handleAddTime}
-                    className="text-xs bg-[#1E1E2C] text-white px-3 py-1 rounded hover:bg-[#2A2A3C]"
-                  >
-                    + 30 min
-                  </button>
-                </div>
-              </div>
-            </div> */}
-
             {/* Block Website */}
             <div className="dashboard-card w-full col-span-3 md:col-span-1">
               <h3 className="font-semibold text-white neon-text mb-3">
@@ -480,9 +479,11 @@ export const DashboardPreview = ({ childEmail }) => {
                   {blockedWebsites.map((site, i) => (
                     <li
                       key={i}
-                      className="bg-[#11111D] px-3 py-2 rounded-lg border border-[#2A2A3C]/50"
+                      className="bg-[#11111D] px-3 py-2 rounded-lg border border-[#2A2A3C]/50 flex items-center"
                     >
-                      <XCircle className="inline h-4 w-4 text-red-500 mr-2" />
+                      <button onClick={() => handleUnblockWebsite(site.domain)} className="mr-2 focus:outline-none" title="Unblock">
+                        <XCircle className="inline h-4 w-4 text-red-500 hover:text-red-400" />
+                      </button>
                       {site.domain}
                     </li>
                   ))}
@@ -677,7 +678,7 @@ export const DashboardPreview = ({ childEmail }) => {
                           <Bell className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
                             <p className="text-red-400 font-medium text-sm mb-1">
-                              Incognito Mode Detected
+                              Incognito: {alert.url || "Unknown Site"}
                             </p>
                             <p className="text-xs text-gray-400">
                               {new Date(alert.timestamp).toLocaleString('en-US', {

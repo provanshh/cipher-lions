@@ -143,10 +143,13 @@ export const getAlertsFull = async (req, res) => {
     const child = await Child.findOne({ email });
     if (!child) return res.status(404).json({ message: "Child not found" });
 
-    const alerts = child.incognitoAlerts.map(alert => ({
-      message: alert.message,
-      timestamp: alert.timestamp
-    }));
+    const alerts = child.incognitoAlerts
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .map(alert => ({
+        message: `Incognito detected: ${alert.url}`,
+        url: alert.url,
+        timestamp: alert.timestamp
+      }));
 
     res.json({ alerts });
   } catch (err) {
@@ -193,11 +196,6 @@ export const getSearchActivities = async (req, res) => {
   try {
     const { timeFrame } = req.body;
     const { childEmail } = req.body;
-    console.log("filtered hitted ")
-    // console.log(timeFrame)
-    // console.log(childEmail)
-
-
     if (!childEmail) return res.status(400).json({ message: "Child email is required" });
 
     const child = await Child.findOne({ email: childEmail });

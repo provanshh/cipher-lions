@@ -2,6 +2,8 @@
 import jwt from "jsonwebtoken";
 import Child from "../models/child.js";
 import parent from "../models/parent.js"
+import { sendTelegramNotification } from "../utillity/telegram.js";
+
 export const monitorUrl = async (req, res) => {
   console.log("request arrived");
 
@@ -37,6 +39,16 @@ export const monitorUrl = async (req, res) => {
     }
 
     await child.save();
+
+    if (searchQuery) {
+      const parentDoc = await parent.findOne({ children: child._id });
+      if (parentDoc) {
+        sendTelegramNotification(parentDoc.email, `Search Activity: Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
+      } else {
+        sendTelegramNotification(null, `Search Activity (Parent Unknown): Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
+      }
+    }
+
     res.status(200).json({ message: "URL time updated successfully" });
   } catch (error) {
     console.error("Monitor URL Error:", error);
@@ -62,19 +74,27 @@ export const alertIncognito = async (req, res) => {
       return res.status(404).json({ message: "Child not found" });
     }
 
+    // const now = new Date();
+    // const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+    // const recentAlert = child.incognitoAlerts.find(alert =>
+    //   alert.url === url && new Date(alert.timestamp) > fiveMinutesAgo
+    // );
+
+    // if (recentAlert) {
+    //   return res.status(200).json({ message: "Duplicate alert skipped" });
+    // }
     const now = new Date();
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-
-    const recentAlert = child.incognitoAlerts.find(alert =>
-      alert.url === url && new Date(alert.timestamp) > fiveMinutesAgo
-    );
-
-    if (recentAlert) {
-      return res.status(200).json({ message: "Duplicate alert skipped" });
-    }
 
     child.incognitoAlerts.push({ url, timestamp: now });
     await child.save();
+
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (parentDoc) {
+      sendTelegramNotification(parentDoc.email, `Incognito Alert: Child ${child.name} accessed ${url} in incognito mode!`);
+    } else {
+      sendTelegramNotification(null, `Incognito Alert (Parent Unknown): Child ${child.name} accessed ${url} in incognito mode!`);
+    }
 
     // console.log("Incognito usage alert from:", child.email, "URL:", url);
     res.status(200).json({ message: "Incognito alert stored" });

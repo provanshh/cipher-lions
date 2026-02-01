@@ -1,11 +1,12 @@
 import Parent from '../models/parent.js';
 import Child from '../models/child.js';
+import { sendTelegramNotification } from '../utillity/telegram.js';
 
 // Get all children of a parent
 // controller
 export const getAllChildren = async (req, res) => {
   try {
-    const parent = await Parent.findOne({email:req.user.email})
+    const parent = await Parent.findOne({ email: req.user.email })
       .populate({
         path: 'children',
         model: 'Child',
@@ -18,7 +19,7 @@ export const getAllChildren = async (req, res) => {
     // console.log(parent.children)
 
 
-    res.json( parent.children ); // ✅ Full profiles, not just IDs
+    res.json(parent.children); // ✅ Full profiles, not just IDs
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -66,10 +67,10 @@ export const getChildAlerts = async (req, res) => {
 
 // Block a URL for a specific child
 export const blockUrl = async (req, res) => {
-  const { url , email } = req.body;
-  
+  const { url, email } = req.body;
+
   try {
-    const child = await Child.findOne({email});
+    const child = await Child.findOne({ email });
     if (!child) {
       return res.status(404).json({ message: "Child not found" });
     }
@@ -78,6 +79,13 @@ export const blockUrl = async (req, res) => {
     if (!child.blockedUrls.includes(url)) {
       child.blockedUrls.push(url);
       await child.save();
+
+      // Send Telegram notification
+      // req.user has the parent's info from the token
+      await sendTelegramNotification(
+        req.user.email,
+        `Website Blocked: You have successfully blocked ${url} for child ${child.name}.`
+      );
     }
 
     res.status(200).json({ message: "URL blocked successfully" });
@@ -88,10 +96,10 @@ export const blockUrl = async (req, res) => {
 
 // Unblock a URL for a specific child
 export const unblockUrl = async (req, res) => {
-  const { url } = req.body;
+  const { url, email } = req.body;
 
   try {
-    const child = await Child.findById(req.params.id);
+    const child = await Child.findOne({ email });
     if (!child) {
       return res.status(404).json({ message: "Child not found" });
     }
