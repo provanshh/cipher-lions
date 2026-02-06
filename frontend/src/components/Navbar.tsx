@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { ShieldLogo } from "./ShieldLogo";
 import { CipherQueryModal } from "./CipherQueryModal";
 import { toast } from "@/hooks/use-toast";
+import { ModeToggle } from "./ModeToggle";
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -54,42 +55,42 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="py-4 px-6 md:px-12 lg:px-24 w-full fixed top-0 z-50 bg-[#0A0A14]/80 backdrop-blur-md border-b border-[#2A2A3C]">
+    <nav className="py-4 px-6 md:px-12 lg:px-24 w-full fixed top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
           <ShieldLogo className="h-8 w-8 text-cipher-purple" />
-          <span className="text-xl font-bold text-white neon-text">CipherGuard</span>
+          <span className="text-xl font-bold text-foreground neon-text">CipherGuard</span>
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
           <div className="flex gap-5">
-            <Link to="/" className="font-medium text-gray-300 hover:text-cipher-purple transition-colors flex items-center gap-1.5">
+            <Link to="/" className="font-medium text-muted-foreground hover:text-cipher-purple transition-colors flex items-center gap-1.5">
               <Home size={18} />
               <span>Home</span>
             </Link>
             <button
               onClick={() => scrollToSection('features')}
-              className="font-medium text-gray-300 hover:text-cipher-purple transition-colors flex items-center gap-1.5"
+              className="font-medium text-muted-foreground hover:text-cipher-purple transition-colors flex items-center gap-1.5"
             >
               <Shield size={18} />
               <span>Features</span>
             </button>
             <button
               onClick={() => scrollToSection('how-it-works')}
-              className="font-medium text-gray-300 hover:text-cipher-purple transition-colors flex items-center gap-1.5"
+              className="font-medium text-muted-foreground hover:text-cipher-purple transition-colors flex items-center gap-1.5"
             >
               <Info size={18} />
               <span>How It Works</span>
             </button>
             <button
               onClick={() => scrollToSection('faq')}
-              className="font-medium text-gray-300 hover:text-cipher-purple transition-colors flex items-center gap-1.5"
+              className="font-medium text-muted-foreground hover:text-cipher-purple transition-colors flex items-center gap-1.5"
             >
               <HelpCircle size={18} />
               <span>FAQ</span>
             </button>
-            <Link to="/contact" className="font-medium text-gray-300 hover:text-cipher-purple transition-colors flex items-center gap-1.5">
+            <Link to="/contact" className="font-medium text-muted-foreground hover:text-cipher-purple transition-colors flex items-center gap-1.5">
               <Mail size={18} />
               <span>Contact</span>
             </Link>
@@ -126,25 +127,26 @@ export const Navbar = () => {
                 Logout
               </Button>
             )}
+            <ModeToggle />
           </div>
         </div>
 
         {/* Mobile Menu Button */}
         <button className="md:hidden" onClick={toggleMenu}>
-          {isMenuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
+          {isMenuOpen ? <X className="h-6 w-6 text-foreground" /> : <Menu className="h-6 w-6 text-foreground" />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-[#0A0A14] shadow-lg py-4 px-6 flex flex-col gap-4 border-b border-[#2A2A3C] z-50">
-          <Link to="/" className="font-medium text-gray-300 py-2 hover:text-cipher-purple flex items-center gap-2">
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-background shadow-lg py-4 px-6 flex flex-col gap-4 border-b border-border z-50">
+          <Link to="/" className="font-medium text-muted-foreground py-2 hover:text-cipher-purple flex items-center gap-2">
             <Home size={18} />
             <span>Home</span>
           </Link>
           <button
             onClick={() => scrollToSection('features')}
-            className="font-medium text-gray-300 py-2 hover:text-cipher-purple flex items-center gap-2 text-left"
+            className="font-medium text-muted-foreground py-2 hover:text-cipher-purple flex items-center gap-2 text-left"
           >
             <Shield size={18} />
             <span>Features</span>

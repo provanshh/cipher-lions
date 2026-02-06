@@ -5,7 +5,7 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   variant?: "primary" | "secondary" | "blue" | "outline" | "neon" | "danger" | "success";
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "icon";
 }
 
 export const Button = ({
@@ -16,7 +16,7 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const baseStyles = "font-medium rounded-lg transition-all duration-200 inline-flex items-center justify-center relative overflow-hidden";
-  
+
   const variantStyles = {
     primary: "bg-cipher-purple hover:bg-cipher-purple-dark text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)]",
     secondary: "bg-transparent text-cipher-purple border border-cipher-purple hover:bg-cipher-purple/10 shadow-[0_0_10px_rgba(139,92,246,0.2)] hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]",
@@ -26,13 +26,14 @@ export const Button = ({
     danger: "bg-red-600/80 hover:bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_20px_rgba(220,38,38,0.5)]",
     success: "bg-green-600/80 hover:bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.3)] hover:shadow-[0_0_20px_rgba(22,163,74,0.5)]"
   };
-  
+
   const sizeStyles = {
     sm: "px-4 py-1.5 text-sm",
     md: "px-6 py-2.5 text-base",
-    lg: "px-8 py-3 text-lg"
+    lg: "px-8 py-3 text-lg",
+    icon: "h-9 w-9 p-2 flex items-center justify-center"
   };
-  
+
   return (
     <button
       className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}

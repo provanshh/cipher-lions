@@ -30,7 +30,16 @@ const childSchema = new mongoose.Schema({
         default: Date.now
       }
     }
-  ]
+  ],
+  lastHeartbeat: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ['online', 'offline'],
+    default: 'offline'
+  }
 });
 
 

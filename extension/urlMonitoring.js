@@ -141,8 +141,62 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   }
 });
 
+/* ================= HEARTBEAT ================= */
+
+async function sendHeartbeat() {
+  const { token } = await chrome.storage.local.get("token");
+  if (!token) return;
+
+  try {
+    await fetch(`${BACKEND_URL}/api/monitor/activate`, { // Reuse activate endpoint for heartbeat
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    });
+  } catch (err) {
+    console.error("Heartbeat failed", err);
+  }
+}
+
 /* ================= START SERVICES ================= */
 
 monitorIncognitoPermission();
 
-setInterval(updateActiveTabToBackend, 60000); // every 1 minute
+setInterval(updateActiveTabToBackend, 60000); // track URL every 1 minute
+setInterval(sendHeartbeat, 60000); // ensure heartbeat every 1 minute
+
+
+/* ================= LIFECYCLE LISTENERS ================= */
+
+async function notifyLifecycleEvent(endpoint) {
+  const { token } = await chrome.storage.local.get("token");
+  if (!token) return;
+
+  try {
+    await fetch(`${BACKEND_URL}/api/monitor/${endpoint}`, {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    });
+  } catch (err) {
+    console.error(`Lifecycle event ${endpoint} failed`, err);
+  }
+}
+
+// When browser starts
+chrome.runtime.onStartup.addListener(() => {
+  console.log("Browser started - notifying activation");
+  notifyLifecycleEvent("activate");
+});
+
+// When extension is installed/updated/reloaded
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("Extension installed/updated - notifying activation");
+  notifyLifecycleEvent("activate");
+});
+

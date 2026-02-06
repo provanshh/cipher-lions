@@ -14,6 +14,7 @@ import Login from "./pages/signin";
 import SignUp from "./pages/signup";
 import "./App.css";
 import AddChild from "./pages/AddChild"
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
@@ -45,18 +46,20 @@ const AppRoutes = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <div className="dark min-h-screen bg-[#0A0A14]">
-        <GridOverlay />
-        <Toaster />
-        <Sonner position="top-right" theme="dark" />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </div>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+          <GridOverlay />
+          <Toaster />
+          <Sonner position="top-right" />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </div>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

@@ -38,14 +38,18 @@ export const monitorUrl = async (req, res) => {
       });
     }
 
+    // Update heartbeat
+    child.lastHeartbeat = new Date();
+    child.status = 'online';
+
     await child.save();
 
     if (searchQuery) {
       const parentDoc = await parent.findOne({ children: child._id });
       if (parentDoc) {
-        sendTelegramNotification(parentDoc.email, `Search Activity: Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
+        await sendTelegramNotification(parentDoc.email, `Search Activity: Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
       } else {
-        sendTelegramNotification(null, `Search Activity (Parent Unknown): Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
+        await sendTelegramNotification(null, `Search Activity (Parent Unknown): Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
       }
     }
 
@@ -56,13 +60,10 @@ export const monitorUrl = async (req, res) => {
   }
 };
 
-// Called from extension when incognito detected without permission
-// import Child from "../models/child.js";
-
 export const alertIncognito = async (req, res) => {
   const { url } = req.body;
-  const email = req.user.email
-  // console.log(email)
+  const email = req.user.email;
+
   if (!email || !url) {
     return res.status(400).json({ message: "Email and URL are required" });
   }
@@ -74,29 +75,17 @@ export const alertIncognito = async (req, res) => {
       return res.status(404).json({ message: "Child not found" });
     }
 
-    // const now = new Date();
-    // const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-
-    // const recentAlert = child.incognitoAlerts.find(alert =>
-    //   alert.url === url && new Date(alert.timestamp) > fiveMinutesAgo
-    // );
-
-    // if (recentAlert) {
-    //   return res.status(200).json({ message: "Duplicate alert skipped" });
-    // }
     const now = new Date();
-
     child.incognitoAlerts.push({ url, timestamp: now });
     await child.save();
 
     const parentDoc = await parent.findOne({ children: child._id });
     if (parentDoc) {
-      sendTelegramNotification(parentDoc.email, `Incognito Alert: Child ${child.name} accessed ${url} in incognito mode!`);
+      await sendTelegramNotification(parentDoc.email, `Incognito Alert: Child ${child.name} accessed ${url} in incognito mode!`);
     } else {
-      sendTelegramNotification(null, `Incognito Alert (Parent Unknown): Child ${child.name} accessed ${url} in incognito mode!`);
+      await sendTelegramNotification(null, `Incognito Alert (Parent Unknown): Child ${child.name} accessed ${url} in incognito mode!`);
     }
 
-    // console.log("Incognito usage alert from:", child.email, "URL:", url);
     res.status(200).json({ message: "Incognito alert stored" });
 
   } catch (err) {
@@ -104,14 +93,66 @@ export const alertIncognito = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const checkUrl = async (req, res) => {
   const { url } = req.body;
-  const { email } = req.user; // from token payload
+  const { email } = req.user;
 
   const child = await Child.findOne({ email });
   if (!child) return res.status(404).json({ blocked: false });
   const isBlocked = child.blockedUrls.some(blockedUrl => url.includes(blockedUrl));
   res.json({ blocked: isBlocked });
+};
+
+export const activateExtension = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const child = await Child.findOne({ email });
+
+    if (!child) return res.status(404).json({ message: "Child not found" });
+
+    // Update status
+    child.lastHeartbeat = new Date();
+    child.status = 'online';
+    await child.save();
+
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (parentDoc) {
+      await sendTelegramNotification(parentDoc.email, `Extension Activation: The extension for child ${child.name} has been connected.`);
+    } else {
+      await sendTelegramNotification(null, `Extension Activation (Parent Unknown): The extension for child ${child.name} has been connected.`);
+    }
+
+    res.status(200).json({ message: "Extension activated" });
+  } catch (error) {
+    console.error("Activation Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const disconnectExtension = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const child = await Child.findOne({ email });
+
+    if (!child) return res.status(404).json({ message: "Child not found" });
+
+    // Update status
+    child.status = 'offline';
+    await child.save();
+
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (parentDoc) {
+      await sendTelegramNotification(parentDoc.email, `Extension Disconnect: The extension for child ${child.name} has been disconnected.`);
+    } else {
+      await sendTelegramNotification(null, `Extension Disconnect (Parent Unknown): The extension for child ${child.name} has been disconnected.`);
+    }
+
+    res.status(200).json({ message: "Extension disconnected" });
+  } catch (error) {
+    console.error("Disconnect Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 
