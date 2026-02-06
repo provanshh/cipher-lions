@@ -28,6 +28,7 @@ import {
   Users
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { generatePDFReport } from "@/utils/pdfGenerator";
 
 const Dashboard = () => {
   const [activeView, setActiveView] = useState("overview");
@@ -160,11 +161,69 @@ const Dashboard = () => {
                 variant="outline"
                 size="sm"
                 className="flex items-center"
-                onClick={() => {
+                onClick={async () => {
+                  if (!selectedChildEmail) {
+                    toast({
+                      title: "Error",
+                      description: "Please select a child profile first",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
                   toast({
-                    title: "Generate report",
-                    description: "Generating detailed activity report...",
+                    title: "Generating report",
+                    description: "Compiling data for PDF report...",
                   });
+
+                  try {
+                    const token = localStorage.getItem("token");
+                    const child = children.find((c: any) => c.email === selectedChildEmail);
+                    const childName = child ? child.name : "Unknown";
+
+                    // Fetch all necessary data
+                    const [usageRes, alertsRes, blockedRes, activityRes] = await Promise.all([
+                      fetch(`${import.meta.env.VITE_BACKENDURL}/api/child/web-usagefull/${selectedChildEmail}`, { headers: { Authorization: `Bearer ${token}` } }),
+                      fetch(`${import.meta.env.VITE_BACKENDURL}/api/child/alertsfull/${selectedChildEmail}`, { headers: { Authorization: `Bearer ${token}` } }),
+                      fetch(`${import.meta.env.VITE_BACKENDURL}/api/child/blockedfull/${selectedChildEmail}`, { headers: { Authorization: `Bearer ${token}` } }),
+                      fetch(`${import.meta.env.VITE_BACKENDURL}/api/child/web-usage-filtered`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ childEmail: selectedChildEmail, timeFrame: "today" })
+                      })
+                    ]);
+
+                    const usageData = await usageRes.json();
+                    const alertsData = await alertsRes.json();
+                    const blockedData = await blockedRes.json();
+                    const activityData = await activityRes.json();
+
+                    await generatePDFReport(
+                      childName,
+                      selectedChildEmail,
+                      parentName,
+                      {
+                        webUsage: usageData.usageDetails || [],
+                        alerts: alertsData.alerts || [],
+                        blocked: blockedData.blockedList || [],
+                        totalTime: usageData.totalTime || "0m",
+                        activities: activityData.activities || []
+                      }
+                    );
+
+                    toast({
+                      title: "Report Downloaded",
+                      description: "Your PDF report has been generated successfully.",
+                    });
+
+                  } catch (error) {
+                    console.error("Report generation error:", error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to generate report",
+                      variant: "destructive",
+                    });
+                  }
                 }}
               >
                 <FileText className="h-4 w-4 mr-2" />

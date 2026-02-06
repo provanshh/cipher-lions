@@ -124,8 +124,8 @@ export const getWebUsageStatsFull = async (req, res) => {
       });
     });
 
-    const hours = Math.floor(totalSeconds / 60 * 60);
-    const minutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
 
     res.json({
       totalTime: `${hours}h ${minutes}m`,
