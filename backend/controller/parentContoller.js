@@ -90,7 +90,7 @@ export const blockUrl = async (req, res) => {
       child.blockedUrls.push(url);
       await child.save();
 
-      const msg = `Website Blocked: You have successfully blocked ${url} for child ${child.name}.`;
+      const msg = `🔒 Site blocked: ${url} is now blocked for ${child.name}`;
       await logActivity({
         child: child._id,
         parentEmail: req.user.email,
@@ -120,7 +120,7 @@ export const unblockUrl = async (req, res) => {
     child.blockedUrls = child.blockedUrls.filter(blockedUrl => blockedUrl !== url);
     await child.save();
 
-    const msg = `Website Unblocked: You have removed ${url} from the blocked list for child ${child.name}.`;
+    const msg = `🔓 Site unblocked: ${url} is now accessible for ${child.name}`;
     await logActivity({
       child: child._id,
       parentEmail: req.user.email,

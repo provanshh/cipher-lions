@@ -32,7 +32,7 @@ export const startHeartbeatMonitor = () => {
                 // Notify Parent
                 const parent = await Parent.findOne({ children: child._id });
                 if (parent) {
-                    const msg = `Extension Disconnect: The extension for child ${child.name} has been disconnected (No heartbeat).`;
+                    const msg = `❌ Extension offline: ${child.name}'s extension stopped responding (no heartbeat)`;
                     await logActivity({
                       child: child._id,
                       parentEmail: parent.email,

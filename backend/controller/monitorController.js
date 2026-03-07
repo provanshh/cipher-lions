@@ -41,7 +41,6 @@ export const monitorUrl = async (req, res) => {
       });
     }
 
-    // Update heartbeat and rough location (child's IP)
     child.lastHeartbeat = new Date();
     child.status = "online";
     const fwd = req.headers["x-forwarded-for"];
@@ -58,7 +57,7 @@ export const monitorUrl = async (req, res) => {
     await child.save();
 
     if (searchQuery) {
-      const msg = `Search Activity: Child ${child.name} searched for "${searchQuery}" on ${domain}`;
+      const msg = `🔍 Search: ${child.name} searched "${searchQuery}" on ${domain}`;
       await logActivity({
         child: child._id,
         type: "SEARCH_ACTIVITY",
@@ -66,7 +65,7 @@ export const monitorUrl = async (req, res) => {
         message: msg,
       });
     } else {
-      const msg = `Browsing Activity: Child ${child.name} visited ${domain}`;
+      const msg = `🌐 Browsing: ${child.name} is on ${domain}`;
       await logActivity({
         child: child._id,
         type: "BROWSING_ACTIVITY",
@@ -101,7 +100,7 @@ export const alertIncognito = async (req, res) => {
     child.incognitoAlerts.push({ url, timestamp: now });
     await child.save();
 
-    const msg = `Incognito Alert: Child ${child.name} accessed ${url} in incognito mode.`;
+    const msg = `⚠️ Incognito: ${child.name} opened ${url} in private/incognito mode`;
     await logActivity({
       child: child._id,
       type: "INCOGNITO_ALERT",
@@ -152,8 +151,8 @@ export const checkUrl = async (req, res) => {
   if (blocked) {
     try {
       const msg = superSafeBlocked
-        ? `SuperSafe Block: Child ${child.name} attempted to open ${url}, blocked by SuperSafe Mode.`
-        : `Blocked URL: Child ${child.name} attempted to open ${url}, which is in the blocked list.`;
+        ? `🛑 SuperSafe blocked: ${child.name} tried to open ${url} — blocked by SuperSafe Mode`
+        : `🚫 Blocked: ${child.name} tried to open ${url} — site is in your blocked list`;
       await logActivity({
         child: child._id,
         type: superSafeBlocked ? "SUPERSAFE_BLOCK" : "BLOCKED_URL",
@@ -204,7 +203,7 @@ export const activateExtension = async (req, res) => {
       child: child._id,
       type: "EXTENSION_ACTIVATED",
       domain: null,
-      message: `Extension Activation: The extension for child ${child.name} has been connected.`,
+      message: `✅ Extension connected: ${child.name}'s CipherGuard extension is now active`,
     });
 
     res.status(200).json({ message: "Extension activated" });
@@ -243,12 +242,12 @@ export const disconnectExtension = async (req, res) => {
         child.failedAttempts = 0; // Reset after lockout
         await child.save();
 
-        const alertMsg = `SECURITY ALERT: Someone attempted to disconnect the extension for child ${child.name} with a WRONG PASSWORD 3 times. Extension is now locked for 1 hour.`;
+        const alertMsg = `🔴 SECURITY ALERT: 3 wrong password attempts to disconnect ${child.name}'s extension. Locked for 1 hour until ${lockoutTime.toLocaleString()}.`;
         await logActivity({
           child: child._id,
           type: "SECURITY_ALERT",
           domain: null,
-          message: `${alertMsg} Locked until ${lockoutTime.toLocaleString()}.`,
+          message: alertMsg,
         });
 
         return res.status(403).json({
@@ -276,7 +275,7 @@ export const disconnectExtension = async (req, res) => {
       child: child._id,
       type: "EXTENSION_DISCONNECTED",
       domain: null,
-      message: `Extension Disconnect: The extension for child ${child.name} has been disconnected.`,
+      message: `❌ Extension disconnected: ${child.name}'s CipherGuard extension has been turned off`,
     });
 
     res.status(200).json({ message: "Extension disconnected" });

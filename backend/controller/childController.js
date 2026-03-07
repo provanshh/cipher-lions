@@ -2,6 +2,7 @@ import Child from "../models/child.js";
 import { v4 as uuidv4 } from "uuid";
 import Parent from '../models/parent.js';
 import { generateToken } from "../utillity/jwt.js";
+import { sendTelegramNotification } from "../utillity/telegram.js";
 
 // Create a new child for the parent
 export const createChild = async (req, res) => {
@@ -27,6 +28,8 @@ export const createChild = async (req, res) => {
     parent.children.push(newChild._id);
     await parent.save();
     const token = generateToken(newChild.email)
+
+    await sendTelegramNotification(req.user.email, `👶 New child profile created: ${name}`);
 
     res.status(201).json({
       message: "Child created successfully",

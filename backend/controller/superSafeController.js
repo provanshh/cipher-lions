@@ -3,6 +3,7 @@ import fs from "fs";
 import SuperSafeSettings from "../models/superSafeSettings.js";
 import AllowedSite from "../models/allowedSite.js";
 import Parent from "../models/parent.js";
+import { sendTelegramNotification } from "../utillity/telegram.js";
 
 const ensureSettings = async (parentId) => {
   let settings = await SuperSafeSettings.findOne({ parent: parentId });
@@ -31,6 +32,11 @@ export const toggleSuperSafe = async (req, res) => {
     const settings = await ensureSettings(parent._id);
     settings.enabled = !!enabled;
     await settings.save();
+
+    const status = settings.enabled ? "enabled" : "disabled";
+    const emoji = settings.enabled ? "🛡️" : "⚙️";
+    await sendTelegramNotification(req.user.email, `${emoji} SuperSafe Mode ${status}`);
+
     res.json({ enabled: settings.enabled });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -55,6 +61,9 @@ export const addAllowedSite = async (req, res) => {
     if (!parent) return res.status(404).json({ message: "Parent not found" });
     const normalized = domain.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
     const site = await AllowedSite.create({ parent: parent._id, domain: normalized });
+
+    await sendTelegramNotification(req.user.email, `✅ SuperSafe: ${normalized} added to allowed sites`);
+
     res.status(201).json(site);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -65,7 +74,12 @@ export const deleteAllowedSite = async (req, res) => {
   try {
     const parent = await Parent.findOne({ email: req.user.email });
     if (!parent) return res.status(404).json({ message: "Parent not found" });
+    const site = await AllowedSite.findOne({ _id: req.params.id, parent: parent._id });
+    const siteDomain = site?.domain || "unknown";
     await AllowedSite.deleteOne({ _id: req.params.id, parent: parent._id });
+
+    await sendTelegramNotification(req.user.email, `🗑️ SuperSafe: ${siteDomain} removed from allowed sites`);
+
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ message: err.message });
