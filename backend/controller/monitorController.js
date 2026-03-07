@@ -2,6 +2,7 @@
 import jwt from "jsonwebtoken";
 import Child from "../models/child.js";
 import parent from "../models/parent.js"
+import Log from "../models/log.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
 
 export const monitorUrl = async (req, res) => {
@@ -107,16 +108,32 @@ export const checkUrl = async (req, res) => {
 export const activateExtension = async (req, res) => {
   try {
     const { email } = req.user;
-    const child = await Child.findOne({ email });
+    const { password } = req.body;
 
+    const child = await Child.findOne({ email });
     if (!child) return res.status(404).json({ message: "Child not found" });
+
+    // Check for lockout
+    if (child.lockoutUntil && child.lockoutUntil > new Date()) {
+      return res.status(403).json({
+        message: "Extension is locked due to multiple failed attempts",
+        lockoutUntil: child.lockoutUntil
+      });
+    }
+
+    // Find parent to verify password
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (!parentDoc) return res.status(404).json({ message: "Parent not found" });
+
+    if (password !== parentDoc.password) {
+      return res.status(401).json({ message: "Invalid parent password" });
+    }
 
     // Update status
     child.lastHeartbeat = new Date();
     child.status = 'online';
     await child.save();
 
-    const parentDoc = await parent.findOne({ children: child._id });
     if (parentDoc) {
       await sendTelegramNotification(parentDoc.email, `Extension Activation: The extension for child ${child.name} has been connected.`);
     } else {
@@ -133,15 +150,66 @@ export const activateExtension = async (req, res) => {
 export const disconnectExtension = async (req, res) => {
   try {
     const { email } = req.user;
-    const child = await Child.findOne({ email });
+    const { password } = req.body;
 
+    const child = await Child.findOne({ email });
     if (!child) return res.status(404).json({ message: "Child not found" });
+
+    // Check for lockout
+    if (child.lockoutUntil && child.lockoutUntil > new Date()) {
+      return res.status(403).json({
+        message: "Extension is locked due to multiple failed attempts",
+        lockoutUntil: child.lockoutUntil
+      });
+    }
+
+    // Find parent to verify password
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (!parentDoc) return res.status(404).json({ message: "Parent not found" });
+
+    if (password !== parentDoc.password) {
+      // Increment failed attempts
+      child.failedAttempts = (child.failedAttempts || 0) + 1;
+
+      if (child.failedAttempts >= 3) {
+        // Set lockout for 1 hour
+        const lockoutTime = new Date(Date.now() + 60 * 60 * 1000);
+        child.lockoutUntil = lockoutTime;
+        child.failedAttempts = 0; // Reset after lockout
+        await child.save();
+
+        // Send Telegram notification
+        const alertMsg = `SECURITY ALERT: Someone attempted to disconnect the extension for child ${child.name} with a WRONG PASSWORD 3 times. Extension is now locked for 1 hour.`;
+        await sendTelegramNotification(parentDoc.email, alertMsg).catch(err => console.error("Telegram fail:", err));
+
+        // Add to Dashboard logs
+        await Log.create({
+          child: child._id,
+          type: 'SECURITY_ALERT',
+          message: `Multiple failed disconnection attempts (3 trials). Extension locked until ${lockoutTime.toLocaleString()}.`
+        }).catch(err => console.error("Log fail:", err));
+
+        return res.status(403).json({
+          message: "Too many failed attempts. Extension locked for 1 hour.",
+          lockoutUntil: lockoutTime
+        });
+      } else {
+        await child.save();
+        return res.status(401).json({
+          message: `Incorrect password. ${3 - child.failedAttempts} trials remaining.`,
+          trialsRemaining: 3 - child.failedAttempts
+        });
+      }
+    }
+
+    // Success - Reset trials
+    child.failedAttempts = 0;
+    child.lockoutUntil = null;
 
     // Update status
     child.status = 'offline';
     await child.save();
 
-    const parentDoc = await parent.findOne({ children: child._id });
     if (parentDoc) {
       await sendTelegramNotification(parentDoc.email, `Extension Disconnect: The extension for child ${child.name} has been disconnected.`);
     } else {

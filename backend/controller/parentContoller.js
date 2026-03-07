@@ -1,5 +1,6 @@
 import Parent from '../models/parent.js';
 import Child from '../models/child.js';
+import Log from '../models/log.js';
 import { sendTelegramNotification } from '../utillity/telegram.js';
 
 // Get all children of a parent
@@ -129,6 +130,33 @@ export const resetTimeSpent = async (req, res) => {
 
     await child.save();
     res.status(200).json({ message: "Time spent reset successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Get notifications for all children of a parent
+export const getNotifications = async (req, res) => {
+  try {
+    const parentDoc = await Parent.findOne({ email: req.user.email });
+    if (!parentDoc) return res.status(404).json({ message: "Parent not found" });
+
+    // Fetch logs for all children
+    const logs = await Log.find({ child: { $in: parentDoc.children } })
+      .sort({ timestamp: -1 })
+      .limit(20)
+      .populate('child', 'name');
+
+    // Format logs for the frontend
+    const notifications = logs.map(log => ({
+      id: log._id,
+      text: `[${log.child?.name || 'Unknown'}] ${log.message}`,
+      time: new Date(log.timestamp).toLocaleString(),
+      read: false, // Default to false
+      type: log.type
+    }));
+
+    res.json(notifications);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

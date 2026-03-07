@@ -6,7 +6,8 @@ import {
   getChildAlerts,
   blockUrl,
   unblockUrl,
-  resetTimeSpent
+  resetTimeSpent,
+  getNotifications
 } from '../controller/parentContoller.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 
@@ -18,6 +19,7 @@ router.get('/children', getAllChildren);
 router.get('/children/:id', getChildDetails);
 router.get('/children/:id/urls', getChildUrls);
 router.get('/children/:id/alerts', getChildAlerts);
+router.get('/notifications', getNotifications);
 router.post('/children/block', blockUrl);
 // router.get('/children/block', ()=>{console.log("block hitted")});
 router.post('/children/unblock', unblockUrl);

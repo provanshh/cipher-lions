@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { X, Send, CheckCircle2, Loader2, Upload, FileText } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { X, Send, CheckCircle2, Loader2, Upload, FileText, Camera, RotateCcw } from "lucide-react";
+import Webcam from "react-webcam";
 import { Button } from "./Button";
 
 interface CipherQueryModalProps {
@@ -17,7 +18,17 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
         age: "",
         imageProof: null as File | null,
         idProof: null as File | null,
+        livePhoto: null as string | null,
     });
+
+    const webcamRef = useRef<Webcam>(null);
+
+    const capture = useCallback(() => {
+        const imageSrc = webcamRef.current?.getScreenshot();
+        if (imageSrc) {
+            setFormData(prev => ({ ...prev, livePhoto: imageSrc }));
+        }
+    }, [webcamRef]);
 
     if (!isOpen) return null;
 
@@ -33,13 +44,13 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
 
     const handleClose = () => {
         setStep("form");
-        setFormData({ aadhar: "", phone: "", age: "", imageProof: null, idProof: null });
+        setFormData({ aadhar: "", phone: "", age: "", imageProof: null, idProof: null, livePhoto: null });
         onClose();
     };
 
     const handleSuccess = () => {
         setStep("form");
-        setFormData({ aadhar: "", phone: "", age: "", imageProof: null, idProof: null });
+        setFormData({ aadhar: "", phone: "", age: "", imageProof: null, idProof: null, livePhoto: null });
         if (onSuccess) onSuccess();
         onClose();
     };
@@ -49,7 +60,7 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
             <div className="bg-[#171723] border border-[#2A2A3C] rounded-xl w-full max-w-md overflow-hidden relative shadow-2xl animate-in fade-in zoom-in duration-300">
                 <div className="scanline"></div>
 
-                <div className="p-6">
+                <div className="p-6 max-h-[90vh] overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-white neon-text">Cipher Query</h2>
                         {!isMandatory && (
@@ -121,6 +132,59 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
                                         <input type="file" className="hidden" onChange={(e) => setFormData({ ...formData, idProof: e.target.files ? e.target.files[0] : null })} />
                                     </label>
                                 </div>
+                            </div>
+
+                            <div className="space-y-1 mt-2">
+                                <label className="block text-xs font-medium text-gray-400">Live Photo Capture</label>
+                                <div className="relative bg-[#11111D] border-2 border-[#2A2A3C] rounded-lg overflow-hidden group min-h-[160px] flex items-center justify-center">
+                                    {!formData.livePhoto ? (
+                                        <div className="relative w-full h-full min-h-[160px]">
+                                            <Webcam
+                                                audio={false}
+                                                ref={webcamRef}
+                                                screenshotFormat="image/jpeg"
+                                                className="w-full h-40 object-cover"
+                                                videoConstraints={{ facingMode: "user" }}
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                                                <button
+                                                    type="button"
+                                                    onClick={capture}
+                                                    className="bg-cipher-purple p-3 rounded-full text-white shadow-lg transform hover:scale-110 transition-transform"
+                                                >
+                                                    <Camera size={24} />
+                                                </button>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={capture}
+                                                className="absolute bottom-3 right-3 bg-cipher-purple/80 backdrop-blur-md p-2 rounded-lg text-white md:hidden"
+                                            >
+                                                <Camera size={20} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="relative w-full h-full min-h-[160px]">
+                                            <img src={formData.livePhoto} alt="Captured" className="w-full h-40 object-cover" />
+                                            <div className="absolute top-2 right-2 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, livePhoto: null })}
+                                                    className="bg-red-500/80 hover:bg-red-500 p-2 rounded-lg text-white backdrop-blur-md transition-colors shadow-lg"
+                                                    title="Retake"
+                                                >
+                                                    <RotateCcw size={18} />
+                                                </button>
+                                            </div>
+                                            <div className="absolute bottom-0 inset-x-0 bg-green-500/20 py-1 text-center border-t border-green-500/30 backdrop-blur-sm">
+                                                <p className="text-[10px] text-green-400 font-bold uppercase tracking-wider">Image Secured</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                {!formData.livePhoto && (
+                                    <p className="text-[10px] text-gray-500 text-center mt-1 italic">Click camera or hover to capture live photo</p>
+                                )}
                             </div>
 
                             <Button type="submit" variant="primary" className="w-full mt-4 flex items-center justify-center flex-row gap-2 h-12">

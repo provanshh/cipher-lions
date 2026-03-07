@@ -39,6 +39,14 @@ const childSchema = new mongoose.Schema({
     type: String,
     enum: ['online', 'offline'],
     default: 'offline'
+  },
+  lockoutUntil: {
+    type: Date,
+    default: null
+  },
+  failedAttempts: {
+    type: Number,
+    default: 0
   }
 });
 

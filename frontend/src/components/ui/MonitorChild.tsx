@@ -1,7 +1,7 @@
 import { User, Settings, LogOut, Bell, Shield, Edit, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Button } from "./Button";
+import { Button } from "./button";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +13,7 @@ export const UserProfile = () => {
   const [editMode, setEditMode] = useState(false);
   const [parentName, setParentName] = useState("Loading...");
   const [parentEmail, setParentEmail] = useState("");
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const unreadCount = notifications.filter(n => !n.read).length;
 
   // Fetch data on mount
@@ -31,7 +31,7 @@ export const UserProfile = () => {
         const [parentRes, childrenRes, notificationsRes] = await Promise.all([
           axios.get(`${import.meta.env.VITE_BACKENDURL}/api/auth/user`, { headers }),
           axios.get(`${import.meta.env.VITE_BACKENDURL}/api/parent/children`, { headers }),
-          axios.get("/api/notifications", { headers })
+          axios.get(`${import.meta.env.VITE_BACKENDURL}/api/parent/notifications`, { headers })
         ]);
         // console.log(parentRes)
         console.log(childrenRes.data)
@@ -39,7 +39,7 @@ export const UserProfile = () => {
         setParentName(parentRes.data.name);
         setParentEmail(parentRes.data.email);
         setChildren(childrenRes.data);
-        // setNotifications(notificationsRes.data);
+        setNotifications(notificationsRes.data);
       } catch (error) {
         console.error("Error fetching data", error);
         toast({
@@ -114,14 +114,14 @@ export const UserProfile = () => {
             <div>
               <h3 className="font-medium neon-blue-text">Edit Profile</h3>
               <div className="flex items-center mt-1">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={parentName}
                   onChange={(e) => setParentName(e.target.value)}
                   className="text-sm bg-[#1E1E2C] border border-[#2A2A3C] rounded px-2 py-1 text-white"
                 />
-                <button 
-                  onClick={handleProfileUpdate} 
+                <button
+                  onClick={handleProfileUpdate}
                   className="ml-2 text-xs bg-cyan-900/30 text-cyan-400 hover:bg-cyan-900/50 px-2 py-1 rounded transition-colors"
                 >
                   Save
@@ -135,7 +135,7 @@ export const UserProfile = () => {
         <div className="flex items-center space-x-2">
           {/* Bell Icon */}
           <div className="relative">
-            <button 
+            <button
               onClick={toggleNotifications}
               className={`p-2 rounded-lg ${showNotifications ? 'bg-cipher-blue/20 text-cyan-400' : 'bg-[#1E1E2C] hover:bg-[#252536] text-gray-400 hover:text-cyan-400'} transition-colors`}
             >
@@ -152,7 +152,7 @@ export const UserProfile = () => {
                 <div className="flex items-center justify-between p-3 border-b border-[#2A2A3C]">
                   <h4 className="text-sm font-medium text-cyan-400">Notifications</h4>
                   {unreadCount > 0 && (
-                    <button 
+                    <button
                       onClick={markAllAsRead}
                       className="text-xs text-gray-400 hover:text-white transition-colors"
                     >
@@ -164,7 +164,7 @@ export const UserProfile = () => {
                 <div className="max-h-72 overflow-y-auto p-1">
                   {notifications.length > 0 ? (
                     notifications.map(notification => (
-                      <div 
+                      <div
                         key={notification.id}
                         className={`p-2 hover:bg-[#1E1E2C] rounded-lg mb-1 ${notification.read ? 'opacity-70' : ''}`}
                       >
@@ -172,7 +172,7 @@ export const UserProfile = () => {
                           <p className={`text-xs ${notification.read ? 'text-gray-400' : 'text-white'}`}>
                             {notification.text}
                           </p>
-                          <button 
+                          <button
                             onClick={() => deleteNotification(notification.id)}
                             className="text-gray-500 hover:text-red-400 ml-2"
                           >
@@ -194,7 +194,7 @@ export const UserProfile = () => {
 
           {/* Settings Menu */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowMenu(!showMenu)}
               className={`p-2 rounded-lg ${showMenu ? 'bg-cipher-blue/20 text-cyan-400' : 'bg-[#1E1E2C] hover:bg-[#252536] text-gray-400 hover:text-cyan-400'} transition-colors`}
             >
@@ -203,7 +203,7 @@ export const UserProfile = () => {
 
             {showMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-[#11111D] border border-[#2A2A3C] rounded-lg shadow-xl z-10 overflow-hidden animate-fade-in">
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-[#1E1E2C] hover:text-white transition-colors flex items-center"
                   onClick={() => {
                     setShowMenu(false);
@@ -213,7 +213,7 @@ export const UserProfile = () => {
                   <Settings className="h-4 w-4 mr-2" /> Account settings
                 </button>
 
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-[#1E1E2C] hover:text-white transition-colors flex items-center"
                   onClick={() => {
                     setShowMenu(false);
@@ -223,7 +223,7 @@ export const UserProfile = () => {
                   <Shield className="h-4 w-4 mr-2" /> Security
                 </button>
 
-                <button 
+                <button
                   className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 transition-colors flex items-center border-t border-[#2A2A3C]"
                   onClick={() => {
                     setShowMenu(false);
@@ -242,12 +242,12 @@ export const UserProfile = () => {
       <div className="mt-4 pt-4 border-t border-[#2A2A3C]">
         <h4 className="text-sm font-medium mb-2">Monitored Profiles</h4>
         <div className="space-y-2">
-          {children.map((child: any,idx) => (
-            
+          {children.map((child: any, idx) => (
+
             <div key={child._id} className="flex items-center justify-between p-2 bg-[#1E1E2C] rounded hover:bg-[#252536] transition-colors group">
               <div className="flex items-center space-x-2">
                 <div className="h-8 w-8 rounded-full bg-cipher-purple/20 flex items-center justify-center relative group-hover:bg-cipher-purple/30 transition-colors">
-                  <span className="text-xs text-white">{idx+1}</span>
+                  <span className="text-xs text-white">{idx + 1}</span>
                 </div>
                 <div>
                   <span className="text-sm">{child.name}</span>
@@ -258,11 +258,11 @@ export const UserProfile = () => {
             </div>
           ))}
 
-          <button 
+          <button
             className="w-full flex items-center justify-center space-x-1 py-2 mt-2 bg-[#1E1E2C] hover:bg-[#252536] text-gray-400 hover:text-white rounded transition-colors text-sm"
             onClick={() => {
               navigate("../add-child")
-             
+
             }}
           >
             <Plus className="h-4 w-4" />
