@@ -16,7 +16,8 @@ app.use(cors({
       !origin ||                                    // non-browser (curl, etc.)
       /^http:\/\/localhost(:\d+)?$/.test(origin) || // any localhost port
       /^chrome-extension:\/\//.test(origin) ||      // Chrome extensions
-      /^https:\/\/.*\.ngrok-free\.app$/.test(origin); // ngrok tunnels
+      /^https:\/\/.*\.ngrok-free\.app$/.test(origin) || // ngrok tunnels
+      origin === "https://cipher-flame-nine.vercel.app"; // deployed frontend
     callback(null, allowed ? origin : false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
