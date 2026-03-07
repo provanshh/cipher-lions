@@ -2,6 +2,7 @@ import apiClient from "./client";
 
 export interface SuperSafeSettings {
   enabled: boolean;
+  blockExtensionsPage: boolean;
   voiceMessageUrl: string | null;
 }
 
@@ -18,6 +19,11 @@ export async function fetchSuperSafeSettings(): Promise<SuperSafeSettings> {
 
 export async function updateSuperSafeToggle(enabled: boolean): Promise<SuperSafeSettings> {
   const { data } = await apiClient.put("/api/supersafe/toggle", { enabled });
+  return data;
+}
+
+export async function updateBlockExtensionsPage(enabled: boolean): Promise<{ blockExtensionsPage: boolean }> {
+  const { data } = await apiClient.put("/api/supersafe/toggle-block-extensions", { enabled });
   return data;
 }
 

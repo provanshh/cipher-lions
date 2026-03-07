@@ -52,6 +52,100 @@ async function alertIncognitoOpen(url) {
   }
 }
 
+/* ================= EXTENSIONS PAGE BLOCKER ================= */
+
+async function checkAndBlockExtensionsPage(tabId, url) {
+  if (!url) return;
+  if (!url.startsWith("chrome://extensions")) return;
+
+  const { token } = await chrome.storage.local.get("token");
+  if (!token) return;
+
+  const { superSafeSettings } = await chrome.storage.local.get("superSafeSettings");
+  const blockEnabled = superSafeSettings?.blockExtensionsPage !== false;
+  if (!blockEnabled) return;
+
+  try {
+    await chrome.tabs.remove(tabId);
+  } catch {}
+
+  try {
+    await fetch(`${BACKEND_URL}/api/monitor/incognito-alert`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        incognitoDetected: false,
+        url: "chrome://extensions (blocked)",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+  } catch {}
+}
+
+/* ================= BLOCKED SEARCH KEYWORDS ================= */
+
+const BLOCKED_SEARCH_KEYWORDS = [
+  "proxy", "proxies", "web proxy", "free proxy",
+  "vpn", "free vpn", "vpn extension", "vpn chrome",
+  "unblock sites", "unblock websites", "unblock school",
+  "bypass filter", "bypass blocker", "bypass parental control",
+  "bypass restriction", "bypass firewall",
+  "how to unblock", "how to bypass", "how to disable parental",
+  "remove parental control", "disable parental control",
+  "turn off parental control", "get around parental control",
+  "unblocker", "site unblocker", "ultrasurf", "psiphon",
+  "hide browsing", "hide history", "anonymous browsing",
+  "tor browser", "tor download",
+  "disable cipherguard", "remove cipherguard", "uninstall cipherguard",
+  "disable extension", "remove extension", "uninstall extension",
+  "chrome extension remove", "how to remove chrome extension",
+];
+
+function containsBlockedKeyword(query) {
+  if (!query) return null;
+  const lower = query.toLowerCase();
+  return BLOCKED_SEARCH_KEYWORDS.find((kw) => lower.includes(kw)) || null;
+}
+
+async function alertBlockedSearch(token, searchQuery, domain) {
+  try {
+    await fetch(`${BACKEND_URL}/api/monitor/blocked-search`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ searchQuery, domain }),
+    });
+  } catch {}
+}
+
+async function checkAndBlockSearchQuery(tabId, url) {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+    if (!domain.includes("google.com") && !domain.includes("bing.com") && !domain.includes("yahoo.com")) {
+      return false;
+    }
+    const params = new URLSearchParams(urlObj.search);
+    const query = params.get("q") || params.get("p") || "";
+    const matched = containsBlockedKeyword(query);
+    if (!matched) return false;
+
+    const { token } = await chrome.storage.local.get("token");
+    if (!token) return false;
+
+    try { await chrome.tabs.remove(tabId); } catch {}
+    await alertBlockedSearch(token, query, domain);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /* ================= ACTIVE TAB MONITOR ================= */
 
 async function updateActiveTabToBackend() {
@@ -72,6 +166,15 @@ async function updateActiveTabToBackend() {
   if (domain.includes("google.com") || domain.includes("bing.com") || domain.includes("yahoo.com")) {
     const params = new URLSearchParams(urlObj.search);
     searchQuery = params.get("q") || params.get("p") || "";
+  }
+
+  const matchedKeyword = containsBlockedKeyword(searchQuery);
+  if (matchedKeyword) {
+    try {
+      await chrome.tabs.remove(tab.id);
+    } catch {}
+    await alertBlockedSearch(token, searchQuery, domain);
+    return;
   }
 
   try {
@@ -137,24 +240,41 @@ async function handleTab(tabId, url) {
 
 /* ================= TAB LISTENERS ================= */
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  if (changeInfo.url?.startsWith("chrome://extensions")) {
+    checkAndBlockExtensionsPage(tabId, changeInfo.url);
+    return;
+  }
   if (changeInfo.url?.startsWith("http")) {
-    handleTab(tabId, changeInfo.url);
-    updateActiveTabToBackend();
+    const blocked = await checkAndBlockSearchQuery(tabId, changeInfo.url);
+    if (!blocked) {
+      handleTab(tabId, changeInfo.url);
+      updateActiveTabToBackend();
+    }
   }
 });
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-  const tab = await chrome.tabs.get(tabId);
-  if (tab.url?.startsWith("http")) {
-    handleTab(tabId, tab.url);
-    updateActiveTabToBackend();
-  }
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (tab.url?.startsWith("chrome://extensions")) {
+      checkAndBlockExtensionsPage(tabId, tab.url);
+      return;
+    }
+    if (tab.url?.startsWith("http")) {
+      const blocked = await checkAndBlockSearchQuery(tabId, tab.url);
+      if (!blocked) {
+        handleTab(tabId, tab.url);
+        updateActiveTabToBackend();
+      }
+    }
+  } catch {}
 });
 
 /* ================= PERIODIC MONITORING ================= */
 
 setInterval(updateActiveTabToBackend, 60000);
 
-// Initial sync when service worker starts
+// Initial sync when service worker starts, then every 2 minutes
 syncSuperSafeSettings();
+setInterval(syncSuperSafeSettings, 120000);

@@ -18,7 +18,11 @@ export const getSettings = async (req, res) => {
     const parent = await Parent.findOne({ email: req.user.email });
     if (!parent) return res.status(404).json({ message: "Parent not found" });
     const settings = await ensureSettings(parent._id);
-    res.json({ enabled: settings.enabled, voiceMessageUrl: settings.voiceMessageUrl });
+    res.json({
+      enabled: settings.enabled,
+      blockExtensionsPage: settings.blockExtensionsPage,
+      voiceMessageUrl: settings.voiceMessageUrl,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -38,6 +42,24 @@ export const toggleSuperSafe = async (req, res) => {
     await sendTelegramNotification(req.user.email, `${emoji} SuperSafe Mode ${status}`);
 
     res.json({ enabled: settings.enabled });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const toggleBlockExtensionsPage = async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    const parent = await Parent.findOne({ email: req.user.email });
+    if (!parent) return res.status(404).json({ message: "Parent not found" });
+    const settings = await ensureSettings(parent._id);
+    settings.blockExtensionsPage = !!enabled;
+    await settings.save();
+
+    const status = settings.blockExtensionsPage ? "enabled" : "disabled";
+    await sendTelegramNotification(req.user.email, `🔧 Extensions page blocking ${status}`);
+
+    res.json({ blockExtensionsPage: settings.blockExtensionsPage });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

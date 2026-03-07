@@ -116,6 +116,33 @@ export const alertIncognito = async (req, res) => {
   }
 };
 
+export const alertBlockedSearch = async (req, res) => {
+  try {
+    const { searchQuery, domain } = req.body;
+    const { email } = req.user;
+
+    if (!searchQuery) {
+      return res.status(400).json({ message: "searchQuery is required" });
+    }
+
+    const child = await Child.findOne({ email });
+    if (!child) return res.status(404).json({ message: "Child not found" });
+
+    const msg = `🚨 Blocked search: ${child.name} searched "${searchQuery}" on ${domain || "unknown"} — tab was closed automatically`;
+    await logActivity({
+      child: child._id,
+      type: "BLOCKED_SEARCH",
+      domain: domain || "unknown",
+      message: msg,
+    });
+
+    res.status(200).json({ message: "Blocked search alert logged" });
+  } catch (err) {
+    console.error("Blocked search alert error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const checkUrl = async (req, res) => {
   const { url } = req.body;
   const { email } = req.user;

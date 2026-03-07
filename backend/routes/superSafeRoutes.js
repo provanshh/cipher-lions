@@ -4,6 +4,7 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 import {
   getSettings,
   toggleSuperSafe,
+  toggleBlockExtensionsPage,
   getAllowedSites,
   addAllowedSite,
   deleteAllowedSite,
@@ -18,6 +19,7 @@ router.use(verifyToken);
 
 router.get("/settings", getSettings);
 router.put("/toggle", toggleSuperSafe);
+router.put("/toggle-block-extensions", toggleBlockExtensionsPage);
 router.get("/allowed-sites", getAllowedSites);
 router.post("/allowed-sites", addAllowedSite);
 router.delete("/allowed-sites/:id", deleteAllowedSite);
