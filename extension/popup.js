@@ -1,5 +1,5 @@
 // Match the backend port configured in backend/.env (PORT=5001)
-const BACKEND_URL = "http://localhost:5001";
+const BACKEND_URL = "https://cipher-shds.onrender.com";
 
 document.addEventListener('DOMContentLoaded', function () {
   const tokenInput = document.getElementById('jwtToken');
