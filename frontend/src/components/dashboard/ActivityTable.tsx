@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Activity, Calendar, Clock, Search, AlertTriangle, ExternalLink, ArrowDownCircle } from "lucide-react";
+import { Activity, Clock, Search, AlertTriangle, ExternalLink, ArrowDownCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 import { useActivities } from "@/hooks/use-children";
 
 interface ActivityTableProps {
@@ -41,15 +39,6 @@ export function ActivityTable({ childEmail }: ActivityTableProps) {
                 <SelectItem value="month">Last 30 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs gap-1.5"
-              onClick={() => toast.info("PDF Export not implemented yet")}
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              Export
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -91,7 +80,7 @@ export function ActivityTable({ childEmail }: ActivityTableProps) {
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Activity className="h-10 w-10 mb-3 opacity-40" />
                 <p className="text-sm font-medium">No activities found</p>
-                <p className="text-xs mt-1">Activity will appear here once monitoring begins</p>
+                <p className="text-xs mt-1">No activity for this time range</p>
               </div>
             )}
           </div>

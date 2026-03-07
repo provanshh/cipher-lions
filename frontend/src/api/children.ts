@@ -71,7 +71,7 @@ export async function generateChildToken(id: string): Promise<{ token: string }>
   return data;
 }
 
-export async function fetchNotifications(): Promise<{ notifications: any[] }> {
+export async function fetchNotifications(): Promise<any[]> {
   const { data } = await apiClient.get("/api/parent/notifications");
-  return data;
+  return Array.isArray(data) ? data : data?.notifications ?? [];
 }

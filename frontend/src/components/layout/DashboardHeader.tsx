@@ -1,6 +1,5 @@
-import { Bell, FileText, RefreshCw, Search } from "lucide-react";
+import { Bell, FileText, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Badge } from "@/components/ui/badge";
+import { useNotifications } from "@/hooks/use-children";
 
 interface DashboardHeaderProps {
   title: string;
@@ -16,7 +16,6 @@ interface DashboardHeaderProps {
   isRefreshing: boolean;
   onRefresh: () => void;
   onGenerateReport: () => void;
-  unreadCount: number;
 }
 
 export function DashboardHeader({
@@ -25,8 +24,11 @@ export function DashboardHeader({
   isRefreshing,
   onRefresh,
   onGenerateReport,
-  unreadCount,
 }: DashboardHeaderProps) {
+  const { data } = useNotifications();
+  const items = Array.isArray(data) ? data : (data as { notifications?: any[] })?.notifications ?? [];
+  const unreadCount = items.length;
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-sm">
       <div className="min-w-0">
@@ -37,14 +39,6 @@ export function DashboardHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            className="h-8 w-48 pl-8 text-sm bg-muted/50 border-0 focus-visible:ring-1"
-          />
-        </div>
-
         <Button
           variant="outline"
           size="sm"
@@ -75,15 +69,26 @@ export function DashboardHeader({
                   variant="destructive"
                   className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px]"
                 >
-                  {unreadCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </Badge>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            <div className="p-3 text-center text-sm text-muted-foreground">
-              No new notifications
-            </div>
+          <DropdownMenuContent align="end" className="w-72">
+            {items.length > 0 ? (
+              <div className="max-h-64 overflow-y-auto">
+                {items.slice(0, 10).map((item: { id?: string; text?: string; time?: string }, i: number) => (
+                  <DropdownMenuItem key={item.id ?? i} className="flex flex-col items-start gap-0.5 py-2.5">
+                    <span className="text-sm leading-tight">{item.text ?? "Notification"}</span>
+                    {item.time && <span className="text-xs text-muted-foreground">{item.time}</span>}
+                  </DropdownMenuItem>
+                ))}
+              </div>
+            ) : (
+              <div className="p-3 text-center text-sm text-muted-foreground">
+                No notifications
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

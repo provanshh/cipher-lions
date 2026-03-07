@@ -53,7 +53,7 @@ export function ProfilesPanel({ children: childProfiles, onSelectChild, onSwitch
                 <div className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Status</p>
                   <div className="flex items-center gap-1.5">
-                    <span className={`h-2 w-2 rounded-full ${child.status === "online" ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/40"}`} />
+                    <span className={`h-2 w-2 rounded-full ${child.status === "online" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
                     <span className={`text-sm font-medium ${child.status === "online" ? "text-emerald-500" : "text-muted-foreground"}`}>
                       {child.status === "online" ? "Online" : "Offline"}
                     </span>
@@ -134,7 +134,7 @@ export function ProfilesPanel({ children: childProfiles, onSelectChild, onSwitch
             <Users className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <h3 className="font-medium mb-1">No profiles yet</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Add a child profile to start monitoring their online activity
+              Add a child profile to get started
             </p>
             <Button onClick={() => navigate("/add-child")}>
               <Plus className="h-4 w-4 mr-2" />
@@ -149,7 +149,7 @@ export function ProfilesPanel({ children: childProfiles, onSelectChild, onSwitch
           <Plus className="h-8 w-8 text-muted-foreground/40 mb-2" />
           <h4 className="text-sm font-medium mb-1">Add another child</h4>
           <p className="text-xs text-muted-foreground mb-3">
-            Monitor and protect all your children with CipherGuard
+            Set up monitoring for another child
           </p>
           <Button variant="outline" size="sm" onClick={() => navigate("/add-child")}>
             Add Profile

@@ -157,9 +157,7 @@ export function VoiceAssistant() {
         animate={!isOpen && status === "idle" ? { y: [0, -4, 0] } : {}}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >
-        <span className="text-2xl" role="img" aria-label="microphone">
-          🎙️
-        </span>
+        <Mic className="h-6 w-6" />
         {/* Provider badge */}
         {isOpen && status !== "idle" && (
           <span
@@ -186,7 +184,7 @@ export function VoiceAssistant() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2">
-                <span role="img" aria-label="mic">🎙️</span>
+                <Mic className="h-4 w-4 text-primary" />
                 <span className="font-semibold text-[16px]">CipherGuard Assistant</span>
               </div>
               <div className="flex items-center gap-2">
@@ -213,15 +211,15 @@ export function VoiceAssistant() {
                 animate={{ height: "auto", opacity: 1 }}
                 className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 text-sm"
               >
-                ⚠️ {fallbackBanner}
+                {fallbackBanner}
               </motion.div>
             )}
 
             {/* Provider label */}
             <div className="px-4 py-1 text-[12px] text-gray-400 dark:text-gray-500">
               {provider === "elevenlabs"
-                ? "🟣 Powered by ElevenLabs · Conversational AI"
-                : "🔵 Powered by Gemini · Text + Web Speech"}
+                ? "Powered by ElevenLabs"
+                : "Powered by Gemini"}
             </div>
 
             {/* Offline message */}

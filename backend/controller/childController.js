@@ -113,7 +113,9 @@ export const getWebUsageStatsFull = async (req, res) => {
         domain: urlObj.domain,
         minutes: time,
         category: urlObj.category,
-        lastUpdated: urlObj.lastUpdated
+        lastUpdated: urlObj.lastUpdated,
+        dailyTimeSpent: Object.fromEntries(urlObj.dailyTimeSpent || new Map()),
+        searchQueries: urlObj.searchQueries || [],
       });
     });
 

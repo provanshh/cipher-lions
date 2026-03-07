@@ -2,6 +2,7 @@ import Parent from '../models/parent.js';
 import Child from '../models/child.js';
 import Log from '../models/log.js';
 import { sendTelegramNotification } from '../utillity/telegram.js';
+import { logActivity } from '../utillity/activityService.js';
 import { generateToken } from '../utillity/jwt.js';
 
 // Get all children of a parent
@@ -89,12 +90,14 @@ export const blockUrl = async (req, res) => {
       child.blockedUrls.push(url);
       await child.save();
 
-      // Send Telegram notification
-      // req.user has the parent's info from the token
-      await sendTelegramNotification(
-        req.user.email,
-        `Website Blocked: You have successfully blocked ${url} for child ${child.name}.`
-      );
+      const msg = `Website Blocked: You have successfully blocked ${url} for child ${child.name}.`;
+      await logActivity({
+        child: child._id,
+        parentEmail: req.user.email,
+        type: "URL_BLOCKED",
+        domain: url,
+        message: msg,
+      });
     }
 
     res.status(200).json({ message: "URL blocked successfully" });
@@ -116,6 +119,15 @@ export const unblockUrl = async (req, res) => {
     // Remove the blocked URL from the list
     child.blockedUrls = child.blockedUrls.filter(blockedUrl => blockedUrl !== url);
     await child.save();
+
+    const msg = `Website Unblocked: You have removed ${url} from the blocked list for child ${child.name}.`;
+    await logActivity({
+      child: child._id,
+      parentEmail: req.user.email,
+      type: "URL_UNBLOCKED",
+      domain: url,
+      message: msg,
+    });
 
     res.status(200).json({ message: "URL unblocked successfully" });
   } catch (err) {

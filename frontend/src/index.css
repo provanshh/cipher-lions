@@ -129,3 +129,13 @@
   animation: aurora 8s ease infinite;
   background-size: 200% 200%;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

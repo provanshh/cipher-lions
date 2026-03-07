@@ -56,8 +56,8 @@ export function ReportsPanel({ childEmail, parentName }: ReportsPanelProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { title: "Weekly Summary", desc: "Overview of activities from the past 7 days", range: "week" },
-          { title: "Monthly Analysis", desc: "Detailed analysis of online behavior patterns", range: "month" },
+          { title: "Weekly Summary", desc: "Activity from the past 7 days", range: "week" },
+          { title: "Monthly Summary", desc: "Activity from the past 30 days", range: "month" },
         ].map((report) => (
           <Card key={report.title}>
             <CardHeader className="pb-2">

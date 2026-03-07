@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart3,
-  Shield,
   Users,
   FileText,
   Settings,
@@ -38,7 +37,6 @@ interface DashboardSidebarProps {
 
 const navItems = [
   { id: "overview", icon: BarChart3, label: "Overview" },
-  { id: "protect", icon: Shield, label: "Protection" },
   { id: "profiles", icon: Users, label: "Profiles" },
   { id: "reports", icon: FileText, label: "Reports" },
   { id: "settings", icon: Settings, label: "Settings" },

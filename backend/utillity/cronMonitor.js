@@ -1,6 +1,7 @@
 import Child from "../models/child.js";
 import Parent from "../models/parent.js";
 import { sendTelegramNotification } from "./telegram.js";
+import { logActivity } from "./activityService.js";
 
 // Check every 1 minute
 const CHECK_INTERVAL = 60 * 1000;
@@ -31,7 +32,14 @@ export const startHeartbeatMonitor = () => {
                 // Notify Parent
                 const parent = await Parent.findOne({ children: child._id });
                 if (parent) {
-                    await sendTelegramNotification(parent.email, `Extension Disconnect: The extension for child ${child.name} has been disconnected (No heartbeat).`);
+                    const msg = `Extension Disconnect: The extension for child ${child.name} has been disconnected (No heartbeat).`;
+                    await logActivity({
+                      child: child._id,
+                      parentEmail: parent.email,
+                      type: "EXTENSION_DISCONNECTED",
+                      domain: null,
+                      message: msg,
+                    });
                 }
             }
 

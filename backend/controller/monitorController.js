@@ -6,6 +6,7 @@ import Log from "../models/log.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
 import SuperSafeSettings from "../models/superSafeSettings.js";
 import AllowedSite from "../models/allowedSite.js";
+import { logActivity } from "../utillity/activityService.js";
 
 export const monitorUrl = async (req, res) => {
 
@@ -57,12 +58,21 @@ export const monitorUrl = async (req, res) => {
     await child.save();
 
     if (searchQuery) {
-      const parentDoc = await parent.findOne({ children: child._id });
-      if (parentDoc) {
-        await sendTelegramNotification(parentDoc.email, `Search Activity: Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
-      } else {
-        await sendTelegramNotification(null, `Search Activity (Parent Unknown): Child ${child.name} searched for: "${searchQuery}" on ${domain}`);
-      }
+      const msg = `Search Activity: Child ${child.name} searched for "${searchQuery}" on ${domain}`;
+      await logActivity({
+        child: child._id,
+        type: "SEARCH_ACTIVITY",
+        domain,
+        message: msg,
+      });
+    } else {
+      const msg = `Browsing Activity: Child ${child.name} visited ${domain}`;
+      await logActivity({
+        child: child._id,
+        type: "BROWSING_ACTIVITY",
+        domain,
+        message: msg,
+      });
     }
 
     res.status(200).json({ message: "URL time updated successfully" });
@@ -91,12 +101,13 @@ export const alertIncognito = async (req, res) => {
     child.incognitoAlerts.push({ url, timestamp: now });
     await child.save();
 
-    const parentDoc = await parent.findOne({ children: child._id });
-    if (parentDoc) {
-      await sendTelegramNotification(parentDoc.email, `Incognito Alert: Child ${child.name} accessed ${url} in incognito mode!`);
-    } else {
-      await sendTelegramNotification(null, `Incognito Alert (Parent Unknown): Child ${child.name} accessed ${url} in incognito mode!`);
-    }
+    const msg = `Incognito Alert: Child ${child.name} accessed ${url} in incognito mode.`;
+    await logActivity({
+      child: child._id,
+      type: "INCOGNITO_ALERT",
+      domain: url,
+      message: msg,
+    });
 
     res.status(200).json({ message: "Incognito alert stored" });
 
@@ -137,6 +148,22 @@ export const checkUrl = async (req, res) => {
   }
 
   const blocked = isManuallyBlocked || superSafeBlocked;
+  // Log and notify on blocked events
+  if (blocked) {
+    try {
+      const msg = superSafeBlocked
+        ? `SuperSafe Block: Child ${child.name} attempted to open ${url}, blocked by SuperSafe Mode.`
+        : `Blocked URL: Child ${child.name} attempted to open ${url}, which is in the blocked list.`;
+      await logActivity({
+        child: child._id,
+        type: superSafeBlocked ? "SUPERSAFE_BLOCK" : "BLOCKED_URL",
+        domain: url,
+        message: msg,
+      });
+    } catch (err) {
+      console.error("checkUrl activity log error:", err);
+    }
+  }
   res.json({
     blocked,
     superSafeEnabled,
@@ -173,10 +200,12 @@ export const activateExtension = async (req, res) => {
     child.status = 'online';
     await child.save();
 
-    await sendTelegramNotification(
-      parentDoc.email,
-      `Extension Activation: The extension for child ${child.name} has been connected.`
-    );
+    await logActivity({
+      child: child._id,
+      type: "EXTENSION_ACTIVATED",
+      domain: null,
+      message: `Extension Activation: The extension for child ${child.name} has been connected.`,
+    });
 
     res.status(200).json({ message: "Extension activated" });
   } catch (error) {
@@ -214,16 +243,13 @@ export const disconnectExtension = async (req, res) => {
         child.failedAttempts = 0; // Reset after lockout
         await child.save();
 
-        // Send Telegram notification
         const alertMsg = `SECURITY ALERT: Someone attempted to disconnect the extension for child ${child.name} with a WRONG PASSWORD 3 times. Extension is now locked for 1 hour.`;
-        await sendTelegramNotification(parentDoc.email, alertMsg).catch(err => console.error("Telegram fail:", err));
-
-        // Add to Dashboard logs
-        await Log.create({
+        await logActivity({
           child: child._id,
-          type: 'SECURITY_ALERT',
-          message: `Multiple failed disconnection attempts (3 trials). Extension locked until ${lockoutTime.toLocaleString()}.`
-        }).catch(err => console.error("Log fail:", err));
+          type: "SECURITY_ALERT",
+          domain: null,
+          message: `${alertMsg} Locked until ${lockoutTime.toLocaleString()}.`,
+        });
 
         return res.status(403).json({
           message: "Too many failed attempts. Extension locked for 1 hour.",
@@ -246,10 +272,12 @@ export const disconnectExtension = async (req, res) => {
     child.status = 'offline';
     await child.save();
 
-    await sendTelegramNotification(
-      parentDoc.email,
-      `Extension Disconnect: The extension for child ${child.name} has been disconnected.`
-    );
+    await logActivity({
+      child: child._id,
+      type: "EXTENSION_DISCONNECTED",
+      domain: null,
+      message: `Extension Disconnect: The extension for child ${child.name} has been disconnected.`,
+    });
 
     res.status(200).json({ message: "Extension disconnected" });
   } catch (error) {

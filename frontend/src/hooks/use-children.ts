@@ -9,6 +9,7 @@ import {
   fetchAlerts,
   fetchAlertsFull,
   fetchActivities,
+  fetchNotifications,
   clearAlerts,
   blockUrl,
   unblockUrl,
@@ -98,6 +99,15 @@ export function useActivities(email: string | null, timeFrame: string) {
     queryFn: () => fetchActivities(email!, timeFrame),
     enabled: !!email,
     refetchInterval: 10_000,
+  });
+}
+
+export function useNotifications() {
+  return useQuery({
+    queryKey: ["notifications"],
+    queryFn: fetchNotifications,
+    enabled: !!localStorage.getItem("token"),
+    refetchInterval: 15_000,
   });
 }
 

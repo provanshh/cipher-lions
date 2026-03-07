@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Child } from "@/types/models";
 import { fetchChildren } from "@/api/children";
-import { Copy as CopyIcon } from "lucide-react";
+import { Copy as CopyIcon, Clock, MapPin, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -82,88 +82,72 @@ export function ChildStatusCard({ child }: ChildStatusCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full rounded-2xl border bg-white p-5 shadow-sm"
+      className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm"
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl" aria-hidden>
-            👦
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            {localChild.name?.charAt(0).toUpperCase()}
           </span>
-          <h3 className="text-[18px] font-semibold">{localChild.name}</h3>
+          <h3 className="text-lg font-semibold">{localChild.name}</h3>
         </div>
         {localChild.isActivated ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 animate-pulse">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            CipherGuard Active
+            Active
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600">
-            <span className="h-2 w-2 rounded-full bg-orange-500" />
-            Awaiting Extension Activation
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            Awaiting Activation
           </span>
         )}
       </div>
 
       {!localChild.isActivated ? (
         <div className="space-y-3">
-          <p className="text-[15px] text-gray-600">
-            Paste this token in the CipherGuard extension to activate protection.
+          <p className="text-sm text-muted-foreground">
+            Paste this token in the CipherGuard extension to activate.
           </p>
-          <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2">
-            <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-sm">
+          <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
+            <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-sm text-foreground">
               {localChild.token}
             </div>
             <button
               type="button"
               onClick={handleCopy}
-              className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+              className="p-2 rounded-full hover:bg-muted-foreground/10 transition-colors"
               title="Copy token"
             >
-              <CopyIcon className="h-4 w-4" />
+              <CopyIcon className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[15px] text-gray-700 mt-2">
-          <div>
-            <div className="text-xs font-semibold text-gray-400 flex items-center gap-1">
-              <span role="img" aria-label="activated">
-                🕒
-              </span>
+        <div className="grid grid-cols-3 gap-4 mt-3">
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Clock className="h-3 w-3" />
               Activated
             </div>
-            <div>{activatedAtLabel}</div>
+            <div className="text-sm text-foreground">{activatedAtLabel}</div>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-gray-400 flex items-center gap-1">
-              <span role="img" aria-label="location">
-                📍
-              </span>
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" />
               Location
             </div>
-            <div>{localChild.location || "Fetching..."}</div>
+            <div className="text-sm text-foreground">{localChild.location || "—"}</div>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-gray-400 flex items-center gap-1">
-              <span role="img" aria-label="last seen">
-                👁️
-              </span>
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Eye className="h-3 w-3" />
               Last Seen
             </div>
-            <div>{formatRelativeTime(localChild.lastSeen)}</div>
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-gray-400 flex items-center gap-1">
-              <span role="img" aria-label="protection">
-                🛡️
-              </span>
-              Protection
-            </div>
-            <div>Content Filtering ON</div>
+            <div className="text-sm text-foreground">{formatRelativeTime(localChild.lastSeen)}</div>
           </div>
         </div>
       )}
     </motion.div>
   );
 }
-

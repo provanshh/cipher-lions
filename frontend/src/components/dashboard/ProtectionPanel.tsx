@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Progress } from "@/components/ui/progress";
 import { Shield, Clock, Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,20 +49,17 @@ export function ProtectionPanel() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">AI Protection Levels</CardTitle>
+          <CardTitle className="text-base">Protection Levels</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-4">
           {[
-            { label: "Image Analysis", level: "High", value: 90 },
-            { label: "Text Analysis", level: "Medium", value: 65 },
-            { label: "Behavioral Analysis", level: "Low", value: 40 },
+            { label: "Image filtering", on: true },
+            { label: "Text filtering", on: true },
+            { label: "URL classification", on: true },
           ].map((item) => (
-            <div key={item.label}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm">{item.label}</span>
-                <span className="text-xs font-medium text-primary">{item.level}</span>
-              </div>
-              <Progress value={item.value} className="h-2" />
+            <div key={item.label} className="flex items-center justify-between">
+              <span className="text-sm">{item.label}</span>
+              <Switch defaultChecked={item.on} />
             </div>
           ))}
         </CardContent>

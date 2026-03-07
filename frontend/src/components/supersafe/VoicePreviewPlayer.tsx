@@ -32,10 +32,13 @@ export function VoicePreviewPlayer() {
     );
   }
 
+  const base = (import.meta.env.VITE_BACKENDURL as string | undefined)?.replace(/\/$/, "") || "";
+  const src = url.startsWith("http") ? url : `${base}${url}`;
+
   return (
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">Current warning message:</p>
-      <audio className="w-full" controls src={url} />
+      <audio className="w-full" controls src={src} />
       <Button
         type="button"
         variant="ghost"

@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
@@ -37,9 +37,11 @@ export function DashboardLayout({ activeView, onViewChange, children, onAddChild
   const parentName = parent?.name ?? "Loading...";
   const parentEmail = parent?.email ?? "";
 
-  if (childProfiles.length > 0 && !selectedChildEmail) {
-    setSelectedChildEmail(childProfiles[0].email);
-  }
+  useEffect(() => {
+    if (childProfiles.length > 0 && !selectedChildEmail) {
+      setSelectedChildEmail(childProfiles[0].email);
+    }
+  }, [childProfiles, selectedChildEmail]);
 
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
@@ -83,11 +85,10 @@ export function DashboardLayout({ activeView, onViewChange, children, onAddChild
   }, [selectedChildEmail, childProfiles, parentName]);
 
   const viewTitles: Record<string, { title: string; subtitle: string }> = {
-    overview: { title: "Overview", subtitle: "Monitor your child's online activity" },
-    protect: { title: "Protection", subtitle: "Configure content filtering and restrictions" },
-    profiles: { title: "Profiles", subtitle: "Manage monitored child profiles" },
-    reports: { title: "Reports", subtitle: "View and export activity reports" },
-    settings: { title: "Settings", subtitle: "Configure your account preferences" },
+    overview: { title: "Overview", subtitle: "Activity and alerts" },
+    profiles: { title: "Profiles", subtitle: "Child profiles" },
+    reports: { title: "Reports", subtitle: "Activity reports" },
+    settings: { title: "Settings", subtitle: "Account preferences" },
   };
 
   const current = viewTitles[activeView] || viewTitles.overview;
@@ -113,7 +114,6 @@ export function DashboardLayout({ activeView, onViewChange, children, onAddChild
           isRefreshing={isRefreshing}
           onRefresh={handleRefresh}
           onGenerateReport={handleGenerateReport}
-          unreadCount={0}
         />
 
         <main className="p-6">

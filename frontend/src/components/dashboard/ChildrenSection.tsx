@@ -4,6 +4,7 @@ import { fetchChildren } from "@/api/children";
 import { ChildStatusCard, ChildStatus } from "./ChildStatusCard";
 import { AddChildModal } from "@/components/child/AddChildModal";
 import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
 
 export function ChildrenSection() {
   const [children, setChildren] = useState<ChildStatus[]>([]);
@@ -46,10 +47,8 @@ export function ChildrenSection() {
   return (
     <section className="mt-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-[20px] font-semibold flex items-center gap-2">
-          <span role="img" aria-label="children">
-            👨‍👧
-          </span>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Users className="h-5 w-5 text-muted-foreground" />
           Your Children
         </h2>
         <Button
@@ -63,10 +62,10 @@ export function ChildrenSection() {
       </div>
 
       {children.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center space-y-2">
-          <p className="text-[18px] font-medium">No child profiles yet</p>
-          <p className="text-[15px] text-gray-500">
-            Add your first child to start monitoring and protecting their browsing.
+        <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center space-y-2">
+          <p className="text-base font-medium text-foreground">No child profiles yet</p>
+          <p className="text-sm text-muted-foreground">
+            Add your first child profile to get started.
           </p>
         </div>
       ) : (
@@ -85,4 +84,3 @@ export function ChildrenSection() {
     </section>
   );
 }
-

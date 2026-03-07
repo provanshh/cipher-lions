@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { StatsCards } from "@/components/dashboard/StatsCards";
+import { AnalyticsCards } from "@/components/dashboard/AnalyticsCards";
+import { AnalyticsChartsSection } from "@/components/dashboard/AnalyticsChartsSection";
 import { OverviewPanel } from "@/components/dashboard/OverviewPanel";
 import { ActivityTable } from "@/components/dashboard/ActivityTable";
-import { ProtectionPanel } from "@/components/dashboard/ProtectionPanel";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+
 import { ProfilesPanel } from "@/components/dashboard/ProfilesPanel";
 import { ReportsPanel } from "@/components/dashboard/ReportsPanel";
 import { SettingsPanel } from "@/components/dashboard/SettingsPanel";
@@ -36,17 +38,30 @@ export default function Dashboard() {
           <>
             {activeView === "overview" && (
               <div className="space-y-6">
-                <StatsCards childEmail={selectedChildEmail} />
-                <OverviewPanel
-                  childEmail={selectedChildEmail}
-                  childName={childProfiles.find((c) => c.email === selectedChildEmail)?.name ?? null}
-                />
-                <ActivityTable childEmail={selectedChildEmail} />
+                {/* Top: analytics cards */}
+                <AnalyticsCards childEmail={selectedChildEmail} />
+
+                {/* Charts */}
+                <AnalyticsChartsSection childEmail={selectedChildEmail} />
+
+                {/* Middle: overview + activity */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                  <div className="xl:col-span-2">
+                    <OverviewPanel
+                      childEmail={selectedChildEmail}
+                      childName={childProfiles.find((c) => c.email === selectedChildEmail)?.name ?? null}
+                    />
+                  </div>
+                  <div className="xl:col-span-1 space-y-4">
+                    <ActivityTable childEmail={selectedChildEmail} />
+                    <ActivityFeed />
+                  </div>
+                </div>
+
+                {/* Bottom: children / profiles summary */}
                 <ChildrenSection />
               </div>
             )}
-
-            {activeView === "protect" && <ProtectionPanel />}
 
             {activeView === "profiles" && (
               <ProfilesPanel

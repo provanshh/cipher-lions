@@ -1,4 +1,5 @@
 (function () {
+  const BACKEND_URL = "https://cipher-shds.onrender.com";
   const domainText = document.getElementById("domainText");
   const messageText = document.getElementById("messageText");
   const audioEl = document.getElementById("voiceWarning");
@@ -16,8 +17,11 @@
           "SuperSafe Mode is ON. Only parent-approved websites are allowed.";
       }
 
-      const voiceUrl = info.voiceMessageUrl;
+      let voiceUrl = info.voiceMessageUrl;
       if (voiceUrl) {
+        if (voiceUrl.startsWith("/")) {
+          voiceUrl = BACKEND_URL + voiceUrl;
+        }
         audioEl.src = voiceUrl;
         audioEl.style.display = "block";
         // Attempt autoplay after a short delay so the element is ready
