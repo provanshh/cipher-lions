@@ -28,6 +28,7 @@ import type { CategoryCount, MonitoredUrl } from "@/types/models";
 
 interface OverviewPanelProps {
   childEmail: string | null;
+  childName?: string | null;
 }
 
 function ScreenTimeChart({ usageDetails }: { usageDetails: MonitoredUrl[] }) {
@@ -67,7 +68,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   general: "bg-pink-500/10 text-pink-500",
 };
 
-export function OverviewPanel({ childEmail }: OverviewPanelProps) {
+export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
   const [blockInput, setBlockInput] = useState("");
 
   const { data: alertsData, isLoading: alertsLoading } = useAlertsFull(childEmail);
@@ -108,7 +109,21 @@ export function OverviewPanel({ childEmail }: OverviewPanelProps) {
   };
 
   return (
-    <Tabs defaultValue="parent" className="space-y-4">
+    <div className="space-y-3">
+      {childName && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground">
+            Viewing: <span className="text-foreground font-bold">{childName}</span>
+          </h2>
+          {childEmail && (
+            <Badge variant="outline" className="text-[11px] font-normal">
+              {childEmail}
+            </Badge>
+          )}
+        </div>
+      )}
+
+      <Tabs defaultValue="parent" className="space-y-4">
       <TabsList className="grid w-full max-w-sm grid-cols-2">
         <TabsTrigger value="parent">Parent Dashboard</TabsTrigger>
         <TabsTrigger value="child">Child View</TabsTrigger>
@@ -390,5 +405,6 @@ export function OverviewPanel({ childEmail }: OverviewPanelProps) {
         </div>
       </TabsContent>
     </Tabs>
+    </div>
   );
 }

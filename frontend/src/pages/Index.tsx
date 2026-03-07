@@ -20,6 +20,11 @@ import { TextGenerateEffect } from "@/components/effects/TextGenerateEffect";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { AuthGate } from "@/components/auth/AuthGate";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { supabase } from "@/lib/supabaseClient";
 import {
   Image,
   Link as LinkIcon,
@@ -100,12 +105,39 @@ const scrollToSection = (sectionId: string) => {
 };
 
 export default function Index() {
-  return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
-      <Navbar />
+  const { isAuthenticated, isLoading, user } = useAuth0();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authTab, setAuthTab] = useState<"login" | "signup">("login");
+  const [needsVerification, setNeedsVerification] = useState(false);
 
-      {/* ===== HERO ===== */}
-      <section className="relative pt-28 pb-24 md:pt-40 md:pb-36 px-6 overflow-hidden">
+  useEffect(() => {
+    if (!isAuthenticated || !user?.email) {
+      setNeedsVerification(false);
+      return;
+    }
+    supabase
+      .from("users")
+      .select("is_verified")
+      .eq("email", user.email)
+      .single()
+      .then(({ data }) => setNeedsVerification(data ? !data.is_verified : false))
+      .catch(() => setNeedsVerification(false));
+  }, [isAuthenticated, user?.email]);
+
+  const openAuthModal = (tab: "login" | "signup") => {
+    setAuthTab(tab);
+    setAuthModalOpen(true);
+  };
+
+  const initialMode = needsVerification ? "verify-safety" : "auth";
+
+  return (
+    <AuthGate>
+      <div className="min-h-screen flex flex-col overflow-x-hidden">
+        <Navbar onSignInClick={openAuthModal} />
+
+        {/* ===== HERO ===== */}
+        <section className="relative pt-28 pb-24 md:pt-40 md:pb-36 px-6 overflow-hidden">
         {/* Aceternity-style layered backgrounds */}
         <AuroraGradient />
         <HeroGrid />
@@ -158,7 +190,7 @@ export default function Index() {
               <Button
                 size="lg"
                 className="group relative overflow-hidden shadow-lg shadow-primary/25 text-base h-12 px-8"
-                onClick={() => scrollToSection("pricing")}
+                onClick={() => openAuthModal("signup")}
               >
                 <span className="relative z-10 flex items-center">
                   Get Started Free
@@ -170,11 +202,14 @@ export default function Index() {
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 />
               </Button>
-              <Link to="/dashboard">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-base h-12 px-8 border-border/60 hover:bg-muted/50">
-                  See Dashboard
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto text-base h-12 px-8 border-border/60 hover:bg-muted/50"
+                onClick={() => openAuthModal("login")}
+              >
+                Sign In
+              </Button>
             </motion.div>
 
             {/* Stats bar */}
@@ -345,10 +380,12 @@ export default function Index() {
             the internet safely.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" className="group shadow-lg shadow-primary/20" onClick={() => scrollToSection("pricing")}>
-              Get Started Free
-              <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Button>
+              <Link to="/onboarding">
+                <Button size="lg" className="group shadow-lg shadow-primary/20">
+                  Get Started Free
+                  <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </Link>
             <Link to="/dashboard">
               <Button variant="outline" size="lg" className="w-full sm:w-auto">Learn More</Button>
             </Link>
@@ -357,6 +394,17 @@ export default function Index() {
       </section>
 
       <Footer />
-    </div>
+      </div>
+
+      {authModalOpen && (
+        <AuthModal
+          open={authModalOpen}
+          initialMode={initialMode}
+          initialTab={authTab}
+          onClose={() => setAuthModalOpen(false)}
+        />
+      )}
+    </AuthGate>
   );
 }
+

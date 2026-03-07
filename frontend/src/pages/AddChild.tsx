@@ -8,6 +8,7 @@ import { UserPlus, Copy, Check, Loader2, ShieldCheck, ArrowLeft } from "lucide-r
 import { toast } from "sonner";
 import { addChild } from "@/api/children";
 import { useQueryClient } from "@tanstack/react-query";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function AddChild() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ export default function AddChild() {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [hasExistingChild, setHasExistingChild] = useState(false);
   const qc = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,10 +26,17 @@ export default function AddChild() {
     try {
       const data = await addChild({ name, email });
       setToken(data.token);
+      setHasExistingChild(false);
       qc.invalidateQueries({ queryKey: ["children"] });
       toast.success("Child added successfully!");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Network error. Please try again.");
+      const msg: string = err?.response?.data?.message || "Network error. Please try again.";
+      if (msg.includes("E11000") || msg.toLowerCase().includes("duplicate")) {
+        setHasExistingChild(true);
+        toast.error("A child with this email already exists. You can't generate a second token.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,28 +94,41 @@ export default function AddChild() {
                 />
               </div>
               {token && (
-                <div className="space-y-2">
-                  <Label>Extension Token</Label>
-                  <div className="flex gap-2">
-                    <Input value={token} readOnly className="font-mono text-xs" />
-                    <Button type="button" variant="outline" size="icon" onClick={copyToken} className="shrink-0">
-                      {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-                    </Button>
+                <div className="space-y-3">
+                  <Label>Connect Extension</Label>
+                  <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-4">
+                    <QRCodeSVG value={token} size={180} level="M" includeMargin />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Open the CipherGuard extension and tap <span className="font-semibold">\"Scan QR\"</span>, or paste the
+                      token below.
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Use this token in the CipherGuard Chrome extension on your child's browser.
-                  </p>
+                  <div className="space-y-1">
+                    <div className="flex gap-2">
+                      <Input value={token} readOnly className="font-mono text-[11px]" />
+                      <Button type="button" variant="outline" size="icon" onClick={copyToken} className="shrink-0">
+                        {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Keep this token safe. You usually only need to connect once.
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
-              <Button type="submit" className="w-full" disabled={!email.trim() || !name.trim() || isLoading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!email.trim() || !name.trim() || isLoading || hasExistingChild}
+              >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <UserPlus className="h-4 w-4 mr-2" />
                 )}
-                {isLoading ? "Adding child..." : "Generate Token"}
+                {hasExistingChild ? "Token already generated" : isLoading ? "Adding child..." : "Generate Token"}
               </Button>
               <Link to="/dashboard" className="w-full">
                 <Button variant="ghost" className="w-full text-muted-foreground gap-2">

@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Activity, Bell, Users, Plus, Eye } from "lucide-react";
+import { Shield, Activity, Bell, Users, Plus, Eye, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { generateChildToken } from "@/api/children";
 
 interface ProfilesPanelProps {
   children: any[];
@@ -14,6 +16,7 @@ interface ProfilesPanelProps {
 
 export function ProfilesPanel({ children: childProfiles, onSelectChild, onSwitchToOverview }: ProfilesPanelProps) {
   const navigate = useNavigate();
+  const [tokens, setTokens] = useState<Record<string, string | undefined>>({});
 
   return (
     <div className="space-y-4">
@@ -58,9 +61,51 @@ export function ProfilesPanel({ children: childProfiles, onSelectChild, onSwitch
                 </div>
                 <div className="p-4">
                   <p className="text-xs text-muted-foreground mb-1">Extension Token</p>
-                  <code className="text-xs text-primary font-mono break-all">
-                    {child.extensionToken || "Pending"}
-                  </code>
+                  <div className="flex flex-col gap-2">
+                    <code className="text-xs text-primary font-mono break-all">
+                      {tokens[child._id] ?? child.token ?? child.extensionToken ?? "Pending"}
+                    </code>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={async () => {
+                          try {
+                            const displayToken = tokens[child._id] ?? child.token ?? child.extensionToken;
+                            if (!displayToken) {
+                              toast.error("No token available to copy yet.");
+                              return;
+                            }
+                            await navigator.clipboard.writeText(displayToken);
+                            toast.success("Token copied to clipboard");
+                          } catch {
+                            toast.error("Unable to copy token");
+                          }
+                        }}
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={async () => {
+                          try {
+                            const { token } = await generateChildToken(child._id);
+                            setTokens((prev) => ({ ...prev, [child._id]: token }));
+                            await navigator.clipboard.writeText(token);
+                            toast.success("New token generated and copied");
+                          } catch (err: any) {
+                            const msg = err?.response?.data?.message || "Failed to generate token";
+                            toast.error(msg);
+                          }
+                        }}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        New token
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

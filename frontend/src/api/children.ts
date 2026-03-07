@@ -66,6 +66,11 @@ export async function unblockUrl(email: string, url: string): Promise<void> {
   await apiClient.post("/api/parent/children/unblock", { url, email });
 }
 
+export async function generateChildToken(id: string): Promise<{ token: string }> {
+  const { data } = await apiClient.post(`/api/parent/children/${id}/token`);
+  return data;
+}
+
 export async function fetchNotifications(): Promise<{ notifications: any[] }> {
   const { data } = await apiClient.get("/api/parent/notifications");
   return data;

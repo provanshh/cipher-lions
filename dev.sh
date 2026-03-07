@@ -11,6 +11,9 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
+echo "Ensuring ports 5000 and 8080 are free..."
+lsof -ti:5000 -ti:8080 2>/dev/null | xargs kill -9 2>/dev/null || true
+
 echo "Installing backend dependencies..."
 (cd backend && npm install)
 

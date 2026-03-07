@@ -2,6 +2,7 @@ import Parent from '../models/parent.js';
 import Child from '../models/child.js';
 import Log from '../models/log.js';
 import { sendTelegramNotification } from '../utillity/telegram.js';
+import { generateToken } from '../utillity/jwt.js';
 
 // Get all children of a parent
 // controller
@@ -11,13 +12,23 @@ export const getAllChildren = async (req, res) => {
       .populate({
         path: 'children',
         model: 'Child',
-        select: 'name email status extensionToken blockedUrls monitoredUrls incognitoAlerts lastHeartbeat'
+        select: 'name email status extensionToken blockedUrls monitoredUrls incognitoAlerts lastHeartbeat location'
       });
 
     if (!parent) {
       return res.status(404).json({ message: "Parent not found" });
     }
-    res.json(parent.children);
+
+    // Attach a fresh JWT token for each child so the parent dashboard can show the correct extension token.
+    const childrenWithTokens = parent.children.map((child) => {
+      const obj = child.toObject ? child.toObject() : child;
+      return {
+        ...obj,
+        token: generateToken(child.email),
+      };
+    });
+
+    res.json(childrenWithTokens);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -154,6 +165,20 @@ export const getNotifications = async (req, res) => {
     }));
 
     res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Generate a new JWT token for a specific child (for use in the browser extension)
+export const generateChildToken = async (req, res) => {
+  try {
+    const child = await Child.findById(req.params.id);
+    if (!child) {
+      return res.status(404).json({ message: "Child not found" });
+    }
+    const token = generateToken(child.email);
+    res.json({ token });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

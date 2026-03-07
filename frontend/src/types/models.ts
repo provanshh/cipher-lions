@@ -27,6 +27,8 @@ export interface Child {
   name: string;
   email: string;
   extensionToken?: string;
+  token?: string;
+  location?: string;
   blockedUrls: string[];
   monitoredUrls: MonitoredUrl[];
   incognitoAlerts: IncognitoAlert[];

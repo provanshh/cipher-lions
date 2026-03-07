@@ -61,8 +61,6 @@ export function SparklesCore({
       vy: (Math.random() - 0.5) * 0.15 * speed,
     }));
 
-    let direction = 1;
-
     const animate = () => {
       ctx.clearRect(0, 0, w(), h());
       const isDark = document.documentElement.classList.contains("dark");
@@ -71,7 +69,7 @@ export function SparklesCore({
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
-        p.alpha += p.alphaSpeed * direction;
+        p.alpha += p.alphaSpeed;
 
         if (p.alpha >= 1 || p.alpha <= 0) {
           p.alphaSpeed *= -1;

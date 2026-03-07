@@ -72,7 +72,11 @@ function OrbCanvas() {
         ctx.beginPath();
         for (let lng = 0; lng <= 360; lng += 2) {
           const p = projectPoint(latRad, (lng * Math.PI) / 180);
-          lng === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+          if (lng === 0) {
+            ctx.moveTo(p.x, p.y);
+          } else {
+            ctx.lineTo(p.x, p.y);
+          }
         }
         ctx.strokeStyle = isDark ? "rgba(160, 140, 255, 0.05)" : "rgba(120, 80, 255, 0.04)";
         ctx.lineWidth = 0.5;
@@ -85,7 +89,11 @@ function OrbCanvas() {
         ctx.beginPath();
         for (let lat = -90; lat <= 90; lat += 2) {
           const p = projectPoint((lat * Math.PI) / 180, lngRad);
-          lat === -90 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+          if (lat === -90) {
+            ctx.moveTo(p.x, p.y);
+          } else {
+            ctx.lineTo(p.x, p.y);
+          }
         }
         ctx.strokeStyle = isDark ? "rgba(160, 140, 255, 0.03)" : "rgba(120, 80, 255, 0.03)";
         ctx.lineWidth = 0.5;

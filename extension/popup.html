@@ -53,6 +53,10 @@
     <h3>CipherGuard Enabled</h3>
     <p>Browsing safely</p>
     <input type="text" id="jwtToken" placeholder="Enter token" />
+    <div id="scanOrPaste" style="display: flex; gap: 6px; margin-top: 8px;">
+      <button type="button" id="scanQR" style="flex: 1; background: #5b21b6;">Scan QR</button>
+      <span style="align-self: center; color: #888; font-size: 11px;">or paste above</span>
+    </div>
     <input type="password" id="parentPassword" placeholder="Enter password" />
     <div id="errorMessage" style="display: none; color: #f44336; font-size: 11px; margin-top: 5px; font-weight: bold; text-align: center;"></div>
     <button id="saveToken">Activate</button>

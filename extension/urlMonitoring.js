@@ -1,4 +1,5 @@
-const BACKEND_URL = "http://localhost:5000";
+// Match the backend port configured in backend/.env (PORT=5001)
+const BACKEND_URL = "http://localhost:5001";
 
 /* ================= INCOGNITO MONITOR ================= */
 

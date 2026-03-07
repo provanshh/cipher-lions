@@ -20,6 +20,7 @@ const childSchema = new mongoose.Schema({
     unique: true,
   },
   extensionToken: String,
+  location: String,
   blockedUrls: [String],
   monitoredUrls: [urlSchema],
   incognitoAlerts: [

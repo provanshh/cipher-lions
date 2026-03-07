@@ -1,4 +1,5 @@
-const BACKEND_URL = "http://localhost:5000";
+// Match the backend port configured in backend/.env (PORT=5001)
+const BACKEND_URL = "http://localhost:5001";
 
 document.addEventListener('DOMContentLoaded', function () {
   const tokenInput = document.getElementById('jwtToken');
@@ -37,8 +38,17 @@ document.addEventListener('DOMContentLoaded', function () {
       startLockout(new Date(lockoutUntil));
     }
 
+    const scannedToken = await getFromStorage("scannedToken");
+    if (scannedToken) {
+      tokenInput.value = scannedToken;
+      saveButton.disabled = !scannedToken.trim();
+      await removeFromStorage("scannedToken");
+    }
+
+    const scanOrPaste = document.getElementById('scanOrPaste');
     if (token) {
       tokenInput.style.display = 'none';
+      if (scanOrPaste) scanOrPaste.style.display = 'none';
       passwordInput.placeholder = "Enter password to disconnect";
       saveButton.style.display = 'none';
       disconnectButton.style.display = 'block';
@@ -46,12 +56,18 @@ document.addEventListener('DOMContentLoaded', function () {
       statusText.textContent = "You are currently protected.";
     } else {
       tokenInput.style.display = 'block';
+      if (scanOrPaste) scanOrPaste.style.display = 'flex';
       passwordInput.placeholder = "Enter parent password";
       saveButton.style.display = 'block';
       disconnectButton.style.display = 'none';
       statusTitle.textContent = "CipherGuard Disabled";
       statusText.textContent = "Please enter your token and password to enable protection.";
     }
+  });
+
+  const scanQRBtn = document.getElementById('scanQR');
+  if (scanQRBtn) scanQRBtn.addEventListener('click', function () {
+    chrome.tabs.create({ url: chrome.runtime.getURL("scan.html") });
   });
 
   function startLockout(untilDate) {

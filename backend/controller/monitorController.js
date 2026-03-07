@@ -38,9 +38,19 @@ export const monitorUrl = async (req, res) => {
       });
     }
 
-    // Update heartbeat
+    // Update heartbeat and rough location (child's IP)
     child.lastHeartbeat = new Date();
-    child.status = 'online';
+    child.status = "online";
+    const fwd = req.headers["x-forwarded-for"];
+    const ipHeader = Array.isArray(fwd) ? fwd[0] : fwd;
+    const ip =
+      (typeof ipHeader === "string" ? ipHeader.split(",")[0].trim() : "") ||
+      req.ip ||
+      req.socket.remoteAddress ||
+      "";
+    if (ip) {
+      child.location = ip;
+    }
 
     await child.save();
 

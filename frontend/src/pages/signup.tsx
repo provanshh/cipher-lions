@@ -1,3 +1,5 @@
+// LEGACY — kept for backward compatibility. Primary auth is now via AuthModal on /.
+// Do not link to this route from main UI. Logic below is unchanged.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";

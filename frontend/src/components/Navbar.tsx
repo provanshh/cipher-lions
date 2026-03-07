@@ -6,7 +6,11 @@ import { ModeToggle } from "./ModeToggle";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export const Navbar = () => {
+interface NavbarProps {
+  onSignInClick?: (tab: "login" | "signup") => void;
+}
+
+export const Navbar = ({ onSignInClick }: NavbarProps) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -27,7 +31,7 @@ export const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     toast.success("Logged out successfully");
-    navigate("/login");
+    navigate("/");
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -91,15 +95,16 @@ export const Navbar = () => {
               Dashboard
             </Link>
           )}
+          {!token && onSignInClick && (
+            <Button variant="default" size="sm" onClick={() => onSignInClick("login")}>
+              Sign In
+            </Button>
+          )}
         </div>
 
         <div className="hidden md:flex items-center gap-2">
           <ModeToggle />
-          {!token ? (
-            <Button size="sm" className="shadow-sm shadow-primary/20" onClick={() => navigate("/login")}>
-              Sign in
-            </Button>
-          ) : (
+          {!token ? null : (
             <Button
               variant="ghost"
               size="sm"
@@ -128,21 +133,21 @@ export const Navbar = () => {
               {link.label}
             </button>
           ))}
-          {token && (
+          {token ? (
             <Link
               to="/dashboard"
               className="block px-3 py-2 text-sm font-medium text-primary rounded-md hover:bg-accent"
             >
               Dashboard
             </Link>
-          )}
+          ) : onSignInClick ? (
+            <Button variant="default" size="sm" className="w-full" onClick={() => onSignInClick("login")}>
+              Sign In
+            </Button>
+          ) : null}
           <div className="pt-2 flex items-center gap-2">
             <ModeToggle />
-            {!token ? (
-              <Button size="sm" className="w-full" onClick={() => navigate("/login")}>
-                Sign in
-              </Button>
-            ) : (
+            {!token ? null : (
               <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-1.5" />
                 Logout

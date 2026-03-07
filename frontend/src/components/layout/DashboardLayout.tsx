@@ -21,9 +21,10 @@ interface DashboardLayoutProps {
   activeView: string;
   onViewChange: (view: string) => void;
   children: ((props: RenderProps) => ReactNode) | ReactNode;
+  onAddChildClick?: () => void;
 }
 
-export function DashboardLayout({ activeView, onViewChange, children }: DashboardLayoutProps) {
+export function DashboardLayout({ activeView, onViewChange, children, onAddChildClick }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedChildEmail, setSelectedChildEmail] = useState<string | null>(null);
@@ -102,6 +103,7 @@ export function DashboardLayout({ activeView, onViewChange, children }: Dashboar
         selectedChildEmail={selectedChildEmail}
         onSelectChild={setSelectedChildEmail}
         parentName={parentName}
+        onAddChildClick={onAddChildClick ?? (() => navigate("/add-child"))}
       />
 
       <div className={cn("transition-all duration-300", collapsed ? "ml-16" : "ml-64")}>

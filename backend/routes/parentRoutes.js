@@ -7,7 +7,8 @@ import {
   blockUrl,
   unblockUrl,
   resetTimeSpent,
-  getNotifications
+  getNotifications,
+  generateChildToken,
 } from '../controller/parentContoller.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 
@@ -23,5 +24,6 @@ router.get('/notifications', getNotifications);
 router.post('/children/block', blockUrl);
 router.post('/children/unblock', unblockUrl);
 router.post('/children/:id/reset', resetTimeSpent);
+router.post('/children/:id/token', generateChildToken);
 
 export default router;
