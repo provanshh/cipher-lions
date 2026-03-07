@@ -118,7 +118,7 @@ export const checkUrl = async (req, res) => {
 
   let superSafeBlocked = false;
   let superSafeEnabled = false;
-  let voiceMessageUrl: string | null = null;
+  let voiceMessageUrl = null;
 
   try {
     const parentDoc = await parent.findOne({ children: child._id });
