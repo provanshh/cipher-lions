@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Child from "../models/child.js";
-import parent from "../models/parent.js"
+import parent from "../models/parent.js";
 import Log from "../models/log.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
+import SuperSafeSettings from "../models/superSafeSettings.js";
+import AllowedSite from "../models/allowedSite.js";
 
 export const monitorUrl = async (req, res) => {
 
@@ -110,8 +112,37 @@ export const checkUrl = async (req, res) => {
 
   const child = await Child.findOne({ email });
   if (!child) return res.status(404).json({ blocked: false });
-  const isBlocked = child.blockedUrls.some(blockedUrl => url.includes(blockedUrl));
-  res.json({ blocked: isBlocked });
+
+  // Existing manual block logic
+  const isManuallyBlocked = child.blockedUrls.some((blockedUrl) => url.includes(blockedUrl));
+
+  let superSafeBlocked = false;
+  let superSafeEnabled = false;
+  let voiceMessageUrl: string | null = null;
+
+  try {
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (parentDoc) {
+      const settings = await SuperSafeSettings.findOne({ parent: parentDoc._id });
+      superSafeEnabled = !!settings?.enabled;
+      if (superSafeEnabled) {
+        const normalized = url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+        const allowed = await AllowedSite.findOne({ parent: parentDoc._id, domain: normalized });
+        superSafeBlocked = !allowed;
+        voiceMessageUrl = settings?.voiceMessageUrl || null;
+      }
+    }
+  } catch (err) {
+    console.error("SuperSafe check error:", err);
+  }
+
+  const blocked = isManuallyBlocked || superSafeBlocked;
+  res.json({
+    blocked,
+    superSafeEnabled,
+    blockedBySuperSafe: superSafeBlocked,
+    voiceMessageUrl,
+  });
 };
 
 export const activateExtension = async (req, res) => {

@@ -2,9 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import childRoutes from "./routes/child.js";
-import monitorRoutes from './routes/monitorRoutes.js';
+import monitorRoutes from "./routes/monitorRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import parentRoutes from "./routes/parentRoutes.js"
+import parentRoutes from "./routes/parentRoutes.js";
+import superSafeRoutes from "./routes/superSafeRoutes.js";
 import { startHeartbeatMonitor } from './utillity/cronMonitor.js';
 dotenv.config();
 
@@ -15,7 +16,7 @@ app.use(cors({
     const allowed =
       !origin ||                                    // non-browser (curl, etc.)
       /^http:\/\/localhost(:\d+)?$/.test(origin) || // any localhost port
-      /^chrome-extension:\/\//.test(origin) ||      // Chrome extensions
+      /^chrome-extension:\/\//.test(origin) || // Chrome extensions
       /^https:\/\/.*\.ngrok-free\.app$/.test(origin) || // ngrok tunnels
       origin === "https://cipher-flame-nine.vercel.app"; // deployed frontend
     callback(null, allowed ? origin : false);
@@ -27,6 +28,7 @@ app.use(cors({
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use("/uploads", express.static("uploads"));
 
 
 // app.use("/api/auth", authRoutes);
@@ -45,10 +47,11 @@ const connectDB = async () => {
 connectDB();
 
 
-app.use('/api/monitor', monitorRoutes);
+app.use("/api/monitor", monitorRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/child", childRoutes);
-app.use("/api/parent", parentRoutes)
+app.use("/api/parent", parentRoutes);
+app.use("/api/supersafe", superSafeRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

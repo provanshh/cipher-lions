@@ -237,10 +237,23 @@ export default function Index() {
             </motion.div>
           </div>
 
-          {/* Right: 3D Orb + Floating Cards */}
-          <div className="flex-1 relative max-w-lg w-full flex items-center justify-center">
-            <SecurityOrb />
-            <FloatingCards />
+          {/* Right: YouTube video + 3D Orb */}
+          <div className="flex-1 relative max-w-lg w-full flex flex-col items-center gap-6">
+            <div className="w-full aspect-video rounded-xl overflow-hidden shadow-lg border border-border/40 bg-black">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/q7_hN1c3RNs?si=3kjbL4JV1oi06P-b"
+                title="CipherGuard demo video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+            <div className="relative w-full flex items-center justify-center">
+              <SecurityOrb />
+              <FloatingCards />
+            </div>
           </div>
         </div>
       </section>

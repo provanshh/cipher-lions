@@ -6,6 +6,7 @@ import { Bell, Settings, Users, Save, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useParentProfile } from "@/hooks/use-auth";
+import { SuperSafeSettingsSection } from "@/components/supersafe/SuperSafeSettingsSection";
 
 export function SettingsPanel() {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ export function SettingsPanel() {
 
   return (
     <div className="space-y-6">
+      <SuperSafeSettingsSection />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           {

@@ -94,9 +94,11 @@ async function checkUrlWithBackend(domain) {
 async function handleTab(tabId, url) {
   try {
     const domain = new URL(url).hostname;
-    const { blocked } = await checkUrlWithBackend(domain);
+    const result = await checkUrlWithBackend(domain);
 
-    if (blocked) {
+    if (result.blocked) {
+      // For now, keep existing behaviour: simple alert + close.
+      // SuperSafe-specific warning/voice can be enhanced here using result.voiceMessageUrl.
       await chrome.scripting.executeScript({
         target: { tabId },
         func: () =>
