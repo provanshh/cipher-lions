@@ -1,5 +1,26 @@
 const BACKEND_URL = "https://cipher-shds.onrender.com";
 
+/* ================= HELPERS ================= */
+
+async function syncSuperSafeSettings() {
+  try {
+    const { token } = await chrome.storage.local.get("token");
+    if (!token) return;
+    const res = await fetch(`${BACKEND_URL}/api/supersafe/settings`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) return;
+    const settings = await res.json();
+    await chrome.storage.local.set({ superSafeSettings: settings });
+  } catch (err) {
+    console.error("SuperSafe settings sync failed", err);
+  }
+}
+
 /* ================= INCOGNITO MONITOR ================= */
 
 chrome.windows.onCreated.addListener((window) => {
@@ -97,15 +118,19 @@ async function handleTab(tabId, url) {
     const result = await checkUrlWithBackend(domain);
 
     if (result.blocked) {
-      // For now, keep existing behaviour: simple alert + close.
-      // SuperSafe-specific warning/voice can be enhanced here using result.voiceMessageUrl.
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        func: () =>
-          alert("This website is restricted by parental control."),
+      // Store info for the warning page
+      await chrome.storage.local.set({
+        supersafeWarning: {
+          domain,
+          voiceMessageUrl: result.voiceMessageUrl || null,
+          blockedBySuperSafe: !!result.blockedBySuperSafe,
+        },
       });
 
-      chrome.tabs.remove(tabId);
+      // Redirect to local warning page
+      await chrome.tabs.update(tabId, {
+        url: chrome.runtime.getURL("warning.html"),
+      });
     }
   } catch { }
 }
@@ -130,3 +155,6 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 /* ================= PERIODIC MONITORING ================= */
 
 setInterval(updateActiveTabToBackend, 60000);
+
+// Initial sync when service worker starts
+syncSuperSafeSettings();
