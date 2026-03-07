@@ -1,9 +1,10 @@
+const BACKEND_URL = "http://localhost:5000";
+
 document.addEventListener('DOMContentLoaded', function () {
   const tokenInput = document.getElementById('jwtToken');
   const passwordInput = document.getElementById('parentPassword');
   const saveButton = document.getElementById('saveToken');
   const disconnectButton = document.getElementById('disconnectExtension');
-  const form = document.getElementById('form');
   const successMessage = document.getElementById('success-message');
   const statusTitle = document.querySelector('#form h3');
   const statusText = document.querySelector('#form p');
@@ -12,47 +13,24 @@ document.addEventListener('DOMContentLoaded', function () {
   const errorMessage = document.getElementById('errorMessage');
   let countdownInterval;
 
-  // ... existing storage logic ...
-  const storage = chrome.storage ? chrome.storage.local : {
-    get: (key, callback) => {
-      const value = localStorage.getItem(key);
-      callback({ [key]: value });
-    },
-    set: (obj, callback) => {
-      Object.keys(obj).forEach(key => {
-        localStorage.setItem(key, obj[key]);
-      });
-      if (callback) callback();
-    },
-    remove: (key, callback) => { // Added remove
-      localStorage.removeItem(key);
-      if (callback) callback();
-    }
-  };
-
   const getFromStorage = (key) => {
     return new Promise((resolve) => {
-      storage.get(key, (result) => resolve(result[key]));
+      chrome.storage.local.get(key, (result) => resolve(result[key]));
     });
   };
 
   const setInStorage = (key, value) => {
     return new Promise((resolve) => {
-      storage.set({ [key]: value }, resolve);
+      chrome.storage.local.set({ [key]: value }, resolve);
     });
   };
 
   const removeFromStorage = (key) => {
     return new Promise((resolve) => {
-      if (chrome.storage) {
-        chrome.storage.local.remove(key, resolve);
-      } else {
-        storage.remove(key, resolve);
-      }
+      chrome.storage.local.remove(key, resolve);
     });
   };
 
-  // Check initial state
   getFromStorage("token").then(async (token) => {
     const lockoutUntil = await getFromStorage("lockoutUntil");
     if (lockoutUntil && new Date(lockoutUntil) > new Date()) {
@@ -64,14 +42,14 @@ document.addEventListener('DOMContentLoaded', function () {
       passwordInput.placeholder = "Enter password to disconnect";
       saveButton.style.display = 'none';
       disconnectButton.style.display = 'block';
-      statusTitle.textContent = "SafeSurf Active";
+      statusTitle.textContent = "CipherGuard Active";
       statusText.textContent = "You are currently protected.";
     } else {
       tokenInput.style.display = 'block';
       passwordInput.placeholder = "Enter parent password";
       saveButton.style.display = 'block';
       disconnectButton.style.display = 'none';
-      statusTitle.textContent = "SafeSurf Disabled";
+      statusTitle.textContent = "CipherGuard Disabled";
       statusText.textContent = "Please enter your token and password to enable protection.";
     }
   });
@@ -80,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (countdownInterval) clearInterval(countdownInterval);
 
     lockoutTimer.style.display = 'block';
-    errorMessage.style.display = 'none'; // Hide error if locked
+    errorMessage.style.display = 'none';
     saveButton.disabled = true;
     disconnectButton.disabled = true;
     passwordInput.disabled = true;
@@ -134,28 +112,24 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       await setInStorage("token", token);
 
-      // Notify backend about activation
-      try {
-        const response = await fetch("http://localhost:5000/api/monitor/activate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password })
-        });
+      const response = await fetch(`${BACKEND_URL}/api/monitor/activate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ password })
+      });
 
-        if (!response.ok) {
-          const data = await response.json();
-          if (response.status === 403 && data.lockoutUntil) {
-            startLockout(new Date(data.lockoutUntil));
-          }
-          errorMessage.textContent = data.message || "Activation failed";
-          errorMessage.style.display = 'block';
-          return;
+      if (!response.ok) {
+        const data = await response.json();
+        if (response.status === 403 && data.lockoutUntil) {
+          startLockout(new Date(data.lockoutUntil));
         }
-      } catch (err) {
-        console.error("Activation notification failed:", err);
+        errorMessage.textContent = data.message || "Activation failed";
+        errorMessage.style.display = 'block';
+        await removeFromStorage("token");
+        return;
       }
 
       tokenInput.style.display = 'none';
@@ -163,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
       passwordInput.placeholder = "Enter password to disconnect";
       saveButton.style.display = 'none';
       disconnectButton.style.display = 'block';
-      statusTitle.textContent = "SafeSurf Active";
+      statusTitle.textContent = "CipherGuard Active";
       statusText.textContent = "You are currently protected.";
       successMessage.style.display = 'block';
 
@@ -171,7 +145,9 @@ document.addEventListener('DOMContentLoaded', function () {
         successMessage.style.display = 'none';
       }, 3000);
     } catch (error) {
-      console.error('Error saving token:', error);
+      errorMessage.textContent = "Failed to connect to server";
+      errorMessage.style.display = 'block';
+      await removeFromStorage("token");
     }
   });
 
@@ -185,30 +161,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     try {
-      // Notify backend about disconnection
-      try {
-        const response = await fetch("http://localhost:5000/api/monitor/disconnect", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password })
-        });
+      const response = await fetch(`${BACKEND_URL}/api/monitor/disconnect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ password })
+      });
 
-        if (!response.ok) {
-          const data = await response.json();
-          if (response.status === 401 && data.lockoutUntil) {
-            startLockout(new Date(data.lockoutUntil));
-          } else if (response.status === 403 && data.lockoutUntil) {
-            startLockout(new Date(data.lockoutUntil));
-          }
-          errorMessage.textContent = data.message || "Disconnection failed. Check password.";
-          errorMessage.style.display = 'block';
-          return;
+      if (!response.ok) {
+        const data = await response.json();
+        if (data.lockoutUntil) {
+          startLockout(new Date(data.lockoutUntil));
         }
-      } catch (err) {
-        console.error("Disconnect notification failed:", err);
+        errorMessage.textContent = data.message || "Disconnection failed. Check password.";
+        errorMessage.style.display = 'block';
+        return;
       }
 
       await removeFromStorage("token");
@@ -219,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
       tokenInput.style.display = 'block';
       saveButton.style.display = 'block';
       disconnectButton.style.display = 'none';
-      statusTitle.textContent = "SafeSurf Disabled";
+      statusTitle.textContent = "CipherGuard Disabled";
       statusText.textContent = "Please enter your token and password to enable protection.";
 
       successMessage.textContent = "Extension disconnected successfully.";
@@ -229,11 +198,12 @@ document.addEventListener('DOMContentLoaded', function () {
       setTimeout(() => {
         successMessage.style.display = 'none';
         successMessage.style.color = 'green';
-        successMessage.textContent = "Hello user! Your protection is now active.";
+        successMessage.textContent = "Your protection is now active.";
       }, 3000);
 
     } catch (error) {
-      console.error('Error disconnecting:', error);
+      errorMessage.textContent = "Failed to connect to server";
+      errorMessage.style.display = 'block';
     }
   });
 });

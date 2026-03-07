@@ -1,32 +1,25 @@
-
-import { LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
+import { SpotlightCard } from "@/components/effects/SpotlightCard";
+import { motion } from "framer-motion";
 
 interface FeatureCardProps {
   icon: LucideIcon;
   title: string;
   description: string;
-  color?: "purple" | "blue" | "default";
 }
 
-export const FeatureCard = ({
-  icon: Icon,
-  title,
-  description,
-  color = "default"
-}: FeatureCardProps) => {
-  const iconColors = {
-    purple: "text-cipher-purple bg-cipher-purple/10",
-    blue: "text-cipher-blue bg-cipher-blue/10",
-    default: "text-gray-400 bg-gray-800/20"
-  };
-
+export const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => {
   return (
-    <div className="feature-card bg-[#171723] border border-[#2A2A3C] p-6 rounded-xl hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] transition-shadow">
-      <div className={`p-3 rounded-lg mb-4 w-fit ${iconColors[color]}`}>
-        <Icon className="h-6 w-6" />
+    <SpotlightCard className="group">
+      <div className="relative p-6">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 mb-4 transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110">
+          <Icon className="h-5 w-5 text-primary transition-transform duration-300 group-hover:scale-110" />
+        </div>
+        <h3 className="text-base font-semibold mb-2 transition-colors group-hover:text-primary">{title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+
+        <div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
-      <h3 className="text-lg font-semibold mb-2 text-white">{title}</h3>
-      <p className="text-gray-300 text-sm">{description}</p>
-    </div>
+    </SpotlightCard>
   );
 };

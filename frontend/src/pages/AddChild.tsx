@@ -1,117 +1,123 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Copy } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { UserPlus, Copy, Check, Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { addChild } from "@/api/children";
+import { useQueryClient } from "@tanstack/react-query";
 
-const AddChild = () => {
+export default function AddChild() {
   const [email, setEmail] = useState("");
-  const [name , setName] = useState("");
-
-  // const [childName, setChildName] = useState("");
+  const [name, setName] = useState("");
   const [token, setToken] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const qc = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+    setIsLoading(true);
+
     try {
-      const parentToken = localStorage.getItem("token");
-      console.log("Parent Token:", parentToken);
-      console.log("Child Email:", email);
-  
-      const response = await fetch(`${import.meta.env.VITE_BACKENDURL}/api/child/add-child`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${parentToken}`,
-        },
-        body: JSON.stringify({ email,name }),
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        setToken(data.token);
-        toast({ title: "Child added!", description: "Token generated successfully." });
-      } else {
-        toast({ title: "Error", description: data.message || "Failed to add child." });
-      }
-    } catch (err) {
-      toast({ title: "Error", description: "Network error or server down." });
+      const data = await addChild({ name, email });
+      setToken(data.token);
+      qc.invalidateQueries({ queryKey: ["children"] });
+      toast.success("Child added successfully!");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
-  
 
   const copyToken = () => {
     if (token) {
       navigator.clipboard.writeText(token);
-      toast({
-        title: "Token copied!",
-        description: "The token has been copied to your clipboard.",
-      });
+      setCopied(true);
+      toast.success("Token copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <div className="min-h-screen w-full py-16 flex items-center justify-center bg-gradient-to-br from-purple-100 via-white to-blue-100">
-      <Card className="w-full max-w-md mx-4 shadow-lg">
-        <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-3xl font-bold">Add Child</CardTitle>
-          <CardDescription>
-            Enter your child's details to generate their token
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Child's Name </Label>
-              <Input
-                id="name"
-                placeholder="Enter child's name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-               <Label htmlFor="email">Child's email </Label>
-              <Input
-                id="email"
-                placeholder="Enter child's email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            {token && (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-8">
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <ShieldCheck className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold">CipherGuard</span>
+          </Link>
+        </div>
+
+        <Card>
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-xl">Add Child Profile</CardTitle>
+            <CardDescription>
+              Enter your child's details to generate their monitoring token
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Child's Token</Label>
-                <div className="flex gap-2">
-                  <Input value={token} readOnly className="font-mono" />
-                  <Button type="button" variant="outline" onClick={copyToken}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Label htmlFor="name">Child's Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter child's name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
               </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={!email.trim()}>
-              Generate Token <UserPlus className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="email">Child's Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter child's email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              {token && (
+                <div className="space-y-2">
+                  <Label>Extension Token</Label>
+                  <div className="flex gap-2">
+                    <Input value={token} readOnly className="font-mono text-xs" />
+                    <Button type="button" variant="outline" size="icon" onClick={copyToken} className="shrink-0">
+                      {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Use this token in the CipherGuard Chrome extension on your child's browser.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              <Button type="submit" className="w-full" disabled={!email.trim() || !name.trim() || isLoading}>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4 mr-2" />
+                )}
+                {isLoading ? "Adding child..." : "Generate Token"}
+              </Button>
+              <Link to="/dashboard" className="w-full">
+                <Button variant="ghost" className="w-full text-muted-foreground gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
     </div>
   );
-};
-
-export default AddChild;
+}

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { X, Send, CheckCircle2, Loader2, Upload, FileText, Camera, RotateCcw } from "lucide-react";
 import Webcam from "react-webcam";
-import { Button } from "./Button";
+import { Button } from "@/components/ui/button";
 
 interface CipherQueryModalProps {
     isOpen: boolean;
@@ -57,12 +57,10 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-[#171723] border border-[#2A2A3C] rounded-xl w-full max-w-md overflow-hidden relative shadow-2xl animate-in fade-in zoom-in duration-300">
-                <div className="scanline"></div>
-
+            <div className="bg-card border border-border rounded-xl w-full max-w-md overflow-hidden relative shadow-2xl animate-in fade-in zoom-in duration-300">
                 <div className="p-6 max-h-[90vh] overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-white neon-text">Cipher Query</h2>
+                        <h2 className="text-xl font-bold">Cipher Query</h2>
                         {!isMandatory && (
                             <button onClick={handleClose} className="text-gray-400 hover:text-white transition-colors">
                                 <X size={24} />
@@ -73,34 +71,34 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
                     {step === "form" && (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">Aadhar Number</label>
+                                <label className="block text-sm font-medium text-muted-foreground mb-1">Aadhar Number</label>
                                 <input
                                     required
                                     type="text"
                                     placeholder="12-digit Aadhar No"
-                                    className="w-full bg-[#11111D] border border-[#2A2A3C] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cipher-purple transition-colors"
+                                    className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
                                     value={formData.aadhar}
                                     onChange={(e) => setFormData({ ...formData, aadhar: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">Phone Number</label>
+                                <label className="block text-sm font-medium text-muted-foreground mb-1">Phone Number</label>
                                 <input
                                     required
                                     type="tel"
                                     placeholder="Your phone number"
-                                    className="w-full bg-[#11111D] border border-[#2A2A3C] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cipher-purple transition-colors"
+                                    className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">Age</label>
+                                <label className="block text-sm font-medium text-muted-foreground mb-1">Age</label>
                                 <input
                                     required
                                     type="number"
                                     placeholder="Enter age"
-                                    className="w-full bg-[#11111D] border border-[#2A2A3C] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cipher-purple transition-colors"
+                                    className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
                                     value={formData.age}
                                     onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                                 />
@@ -187,18 +185,18 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
                                 )}
                             </div>
 
-                            <Button type="submit" variant="primary" className="w-full mt-4 flex items-center justify-center flex-row gap-2 h-12">
+                            <Button type="submit" className="w-full mt-4 h-12 gap-2">
                                 <Send size={18} className="flex-shrink-0" />
-                                <span className="whitespace-nowrap font-bold">Send Query</span>
+                                Send Query
                             </Button>
                         </form>
                     )}
 
                     {step === "sending" && (
                         <div className="py-12 flex flex-col items-center justify-center text-center">
-                            <Loader2 className="h-16 w-16 text-cipher-purple animate-spin mb-4" />
-                            <p className="text-lg font-medium text-white">Sending request to Cipher...</p>
-                            <p className="text-sm text-gray-500 mt-2">Connecting to secure servers</p>
+                            <Loader2 className="h-16 w-16 text-primary animate-spin mb-4" />
+                            <p className="text-lg font-medium">Sending request to Cipher...</p>
+                            <p className="text-sm text-muted-foreground mt-2">Connecting to secure servers</p>
                         </div>
                     )}
 
@@ -207,9 +205,9 @@ export const CipherQueryModal = ({ isOpen, onClose, onSuccess, isMandatory }: Ci
                             <div className="h-20 w-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
                                 <CheckCircle2 className="h-12 w-12 text-green-500 animate-in zoom-in duration-500" />
                             </div>
-                            <p className="text-xl font-bold text-white mb-2">Query Sent!</p>
-                            <p className="text-gray-400 mb-8 max-w-[250px] mx-auto">Your request has been successfully transmitted to the Cipher network.</p>
-                            <Button onClick={handleSuccess} variant="secondary">Close</Button>
+                            <p className="text-xl font-bold mb-2">Query Sent!</p>
+                            <p className="text-muted-foreground mb-8 max-w-[250px] mx-auto">Your request has been successfully transmitted to the Cipher network.</p>
+                            <Button onClick={handleSuccess} variant="outline">Close</Button>
                         </div>
                     )}
                 </div>

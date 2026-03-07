@@ -1,22 +1,7 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      width: 250px;
-      padding: 10px;
-    }
-
-    #message {
-      display: none;
-      font-size: 16px;
-      font-weight: bold;
-      color: green;
-      text-align: center;
-    }
-
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f9f9f9;
@@ -25,20 +10,11 @@
       text-align: center;
     }
 
+    h2 { color: #2c3e50; margin-bottom: 8px; }
+    p { margin-top: 0; color: #555; }
 
-    h2 {
-      color: #2c3e50;
-      margin-bottom: 8px;
-    }
-
-
-    p {
-      margin-top: 0;
-      color: #555;
-    }
-
-
-    input[type="text"] {
+    input[type="text"],
+    input[type="password"] {
       width: 100%;
       padding: 8px;
       margin-top: 10px;
@@ -47,12 +23,11 @@
       box-sizing: border-box;
     }
 
-
     button {
       margin-top: 10px;
       width: 100%;
       padding: 8px;
-      background-color: #4CAF50;
+      background-color: #7c3aed;
       color: white;
       border: none;
       border-radius: 5px;
@@ -60,39 +35,35 @@
       font-weight: bold;
     }
 
+    button:hover { background-color: #6d28d9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    button:hover {
-      background-color: #45a049;
+    #success-message {
+      display: none;
+      font-size: 14px;
+      font-weight: bold;
+      color: green;
+      text-align: center;
+      margin-top: 10px;
     }
   </style>
 </head>
-
 <body>
   <div id="form">
-    <h3>SafeSurf Enabled</h3>
+    <h3>CipherGuard Enabled</h3>
     <p>Browsing safely</p>
     <input type="text" id="jwtToken" placeholder="Enter token" />
-    <input type="password" id="parentPassword" placeholder="Enter password"
-      style="width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;" />
-    <div id="errorMessage"
-      style="display: none; color: #f44336; font-size: 11px; margin-top: 5px; font-weight: bold; text-align: center;">
-    </div>
-    <button id="saveToken">Save</button>
+    <input type="password" id="parentPassword" placeholder="Enter password" />
+    <div id="errorMessage" style="display: none; color: #f44336; font-size: 11px; margin-top: 5px; font-weight: bold; text-align: center;"></div>
+    <button id="saveToken">Activate</button>
     <button id="disconnectExtension" style="display: none; background-color: #f44336;">Disconnect</button>
-    <div id="lockoutTimer"
-      style="display: none; margin-top: 15px; padding: 10px; background: #ffebee; border: 1px solid #ef5350; border-radius: 5px; color: #c62828; font-weight: bold; font-size: 14px;">
+    <div id="lockoutTimer" style="display: none; margin-top: 15px; padding: 10px; background: #ffebee; border: 1px solid #ef5350; border-radius: 5px; color: #c62828; font-weight: bold; font-size: 14px;">
       Lockout: <span id="timerValue">00:00:00</span>
     </div>
   </div>
 
+  <div id="success-message">Your protection is now active.</div>
 
-  <div id="success-message" style="display: none;">Hello user! Your protection is now active.</div>
-
-
-  <script type="module" src="popup.js"></script>
-
-
-  <!-- <script src="popup.js"></script> -->
+  <script src="popup.js"></script>
 </body>
-
 </html>

@@ -14,14 +14,13 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 router.use(verifyToken);
-// router.post('/children', authMiddleware, createChild);
+
 router.get('/children', getAllChildren);
 router.get('/children/:id', getChildDetails);
 router.get('/children/:id/urls', getChildUrls);
 router.get('/children/:id/alerts', getChildAlerts);
 router.get('/notifications', getNotifications);
 router.post('/children/block', blockUrl);
-// router.get('/children/block', ()=>{console.log("block hitted")});
 router.post('/children/unblock', unblockUrl);
 router.post('/children/:id/reset', resetTimeSpent);
 

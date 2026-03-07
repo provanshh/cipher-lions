@@ -1,94 +1,102 @@
-
 import { Link, useLocation } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
-import { ShieldLogo } from "./ShieldLogo";
+import { ShieldCheck } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export const Footer = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
 
-  // Function to handle smooth scrolling to sections on home page
   const scrollToSection = (sectionId: string) => {
     if (isHomePage) {
       const section = document.getElementById(sectionId);
-      if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
-      }
+      if (section) section.scrollIntoView({ behavior: "smooth" });
     } else {
-      // If not on home page, navigate to home page with anchor
       window.location.href = `/#${sectionId}`;
     }
   };
 
   return (
-    <footer className="bg-[#111118] border-t border-gray-800">
-      <div className="max-w-7xl mx-auto py-12 px-6 md:px-12 lg:px-24">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <ShieldLogo className="h-6 w-6 text-cipher-purple" />
-              <span className="text-lg font-bold text-white">CipherGuard</span>
+    <footer className="relative border-t border-border">
+      <div className="absolute inset-0 bg-gradient-to-t from-muted/30 to-transparent pointer-events-none" />
+      <div className="relative mx-auto max-w-7xl px-6 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="col-span-2 md:col-span-1">
+            <Link to="/" className="flex items-center gap-2 mb-3 group">
+              <ShieldCheck className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
+              <span className="font-bold">CipherGuard</span>
             </Link>
-            <p className="text-sm text-gray-300 mb-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Smart AI protection for young minds, keeping children safe online while respecting their privacy.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-cipher-purple transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-cipher-purple transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-cipher-purple transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-cipher-purple transition-colors">
-                <Youtube className="h-5 w-5" />
-              </a>
-            </div>
           </div>
-          
+
           <div>
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white mb-4">Product</h3>
-            <ul className="space-y-2">
-              <li><button onClick={() => scrollToSection('features')} className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Features</button></li>
-              <li><button onClick={() => scrollToSection('how-it-works')} className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">How It Works</button></li>
-              <li><button onClick={() => scrollToSection('pricing')} className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Pricing</button></li>
-              <li><Link to="/testimonials" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Testimonials</Link></li>
+            <h4 className="text-sm font-semibold mb-4">Product</h4>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Features", action: () => scrollToSection("features") },
+                { label: "How It Works", action: () => scrollToSection("how-it-works") },
+                { label: "Pricing", action: () => scrollToSection("pricing") },
+              ].map((item) => (
+                <li key={item.label}>
+                  <button
+                    onClick={item.action}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li><button onClick={() => scrollToSection('faq')} className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">FAQ</button></li>
-              <li><Link to="/contact" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Contact Us</Link></li>
-              <li><Link to="/help" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Help Center</Link></li>
-              <li><Link to="/community" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Community</Link></li>
+            <h4 className="text-sm font-semibold mb-4">Support</h4>
+            <ul className="space-y-2.5">
+              {[
+                { label: "FAQ", action: () => scrollToSection("faq") },
+                { label: "Contact Us", to: "/contact" },
+              ].map((item) => (
+                <li key={item.label}>
+                  {"to" in item ? (
+                    <Link to={item.to!} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={item.action}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {item.label}
+                    </button>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white mb-4">Legal</h3>
-            <ul className="space-y-2">
-              <li><Link to="/privacy" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Terms of Service</Link></li>
-              <li><Link to="/cookies" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Cookie Policy</Link></li>
-              <li><Link to="/compliance" className="text-sm text-gray-300 hover:text-cipher-purple transition-colors">Compliance</Link></li>
+            <h4 className="text-sm font-semibold mb-4">Legal</h4>
+            <ul className="space-y-2.5">
+              {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((item) => (
+                <li key={item}>
+                  <span className="text-sm text-muted-foreground cursor-default">{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-        
-        <div className="border-t border-gray-800 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-300">
+
+        <Separator className="my-8" />
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} CipherGuard. All rights reserved.
           </p>
-          <div className="mt-4 md:mt-0">
-            <ul className="flex space-x-6">
-              <li><Link to="/privacy" className="text-xs text-gray-300 hover:text-cipher-purple transition-colors">Privacy</Link></li>
-              <li><Link to="/terms" className="text-xs text-gray-300 hover:text-cipher-purple transition-colors">Terms</Link></li>
-              <li><Link to="/cookies" className="text-xs text-gray-300 hover:text-cipher-purple transition-colors">Cookies</Link></li>
-            </ul>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span>Built with</span>
+            <span className="text-primary">♥</span>
+            <span>to protect what matters most</span>
           </div>
         </div>
       </div>

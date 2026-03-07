@@ -1,10 +1,6 @@
-console.log("CipherGuard background service worker loaded");
-
-/* ================= CONFIG ================= */
-
 const BACKEND_URL = "http://localhost:5000";
 
-/* ================= INCognito MONITOR ================= */
+/* ================= INCOGNITO MONITOR ================= */
 
 chrome.windows.onCreated.addListener((window) => {
   if (window.incognito) {
@@ -12,17 +8,6 @@ chrome.windows.onCreated.addListener((window) => {
     alertIncognitoOpen("Incognito Window Attempt");
   }
 });
-
-function monitorIncognitoPermission() {
-  setInterval(() => {
-    chrome.extension.isAllowedIncognitoAccess(isAllowed => {
-      if (!isAllowed) {
-        // This notifies the parent that the extension can't monitor incognito yet
-        console.log("Incognito access not allowed");
-      }
-    });
-  }, 60000); // every 1 minute
-}
 
 async function alertIncognitoOpen(url) {
   const { token } = await chrome.storage.local.get("token");
@@ -63,10 +48,9 @@ async function updateActiveTabToBackend() {
   const domain = urlObj.hostname;
   let searchQuery = "";
 
-  // Extract search query if it's a known search engine
   if (domain.includes("google.com") || domain.includes("bing.com") || domain.includes("yahoo.com")) {
     const params = new URLSearchParams(urlObj.search);
-    searchQuery = params.get("q") || params.get("p") || ""; // q for google/bing, p for yahoo
+    searchQuery = params.get("q") || params.get("p") || "";
   }
 
   try {
@@ -100,7 +84,7 @@ async function checkUrlWithBackend(domain) {
     });
 
     if (!res.ok) return { blocked: false };
-    return await res.json(); // { blocked: true/false }
+    return await res.json();
   } catch (err) {
     console.error("URL check failed", err);
     return { blocked: false };
@@ -124,7 +108,7 @@ async function handleTab(tabId, url) {
   } catch { }
 }
 
-/* ================= TAB LISTENERS (MV3 SAFE) ================= */
+/* ================= TAB LISTENERS ================= */
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.url?.startsWith("http")) {
@@ -141,62 +125,6 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   }
 });
 
-/* ================= HEARTBEAT ================= */
+/* ================= PERIODIC MONITORING ================= */
 
-async function sendHeartbeat() {
-  const { token } = await chrome.storage.local.get("token");
-  if (!token) return;
-
-  try {
-    await fetch(`${BACKEND_URL}/api/monitor/activate`, { // Reuse activate endpoint for heartbeat
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-    });
-  } catch (err) {
-    console.error("Heartbeat failed", err);
-  }
-}
-
-/* ================= START SERVICES ================= */
-
-monitorIncognitoPermission();
-
-setInterval(updateActiveTabToBackend, 60000); // track URL every 1 minute
-setInterval(sendHeartbeat, 60000); // ensure heartbeat every 1 minute
-
-
-/* ================= LIFECYCLE LISTENERS ================= */
-
-async function notifyLifecycleEvent(endpoint) {
-  const { token } = await chrome.storage.local.get("token");
-  if (!token) return;
-
-  try {
-    await fetch(`${BACKEND_URL}/api/monitor/${endpoint}`, {
-      method: "POST",
-      keepalive: true,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-    });
-  } catch (err) {
-    console.error(`Lifecycle event ${endpoint} failed`, err);
-  }
-}
-
-// When browser starts
-chrome.runtime.onStartup.addListener(() => {
-  console.log("Browser started - notifying activation");
-  notifyLifecycleEvent("activate");
-});
-
-// When extension is installed/updated/reloaded
-chrome.runtime.onInstalled.addListener(() => {
-  console.log("Extension installed/updated - notifying activation");
-  notifyLifecycleEvent("activate");
-});
-
+setInterval(updateActiveTabToBackend, 60000);

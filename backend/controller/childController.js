@@ -2,16 +2,11 @@ import Child from "../models/child.js";
 import { v4 as uuidv4 } from "uuid";
 import Parent from '../models/parent.js';
 import { generateToken } from "../utillity/jwt.js";
-// import Child from '../models/Child.js';
 
 // Create a new child for the parent
 export const createChild = async (req, res) => {
   const { name, email } = req.body;
-  const parentEmail = req.user.email;
-  // console.log(req.user)
-  // console.log(req.body)
   try {
-    // Find the parent by ID (assuming parent ID is available in the `req.parent` from middleware)
     const parent = await Parent.findOne({ email: req.user.email });
     if (!parent) {
       return res.status(404).json({ message: "Parent not found" });
@@ -38,7 +33,6 @@ export const createChild = async (req, res) => {
       token: token,
     });
   } catch (err) {
-    console.log(err.message)
     res.status(500).json({ message: err.message });
   }
 };
@@ -55,7 +49,6 @@ export const getChildren = async (req, res) => {
 
 export const getWebUsageStats = async (req, res) => {
   try {
-    // console.log(req.params)
     const { email } = req.params;
     const child = await Child.findOne({ email });
     if (!child) return res.status(404).json({ message: "Child not found" });
@@ -161,7 +154,6 @@ export const getAlertsFull = async (req, res) => {
 export const clearAlerts = async (req, res) => {
   try {
     const { email } = req.params;
-    console.log("delete hiited")
     const child = await Child.findOne({ email });
     if (!child) return res.status(404).json({ message: "Child not found" });
 
@@ -211,7 +203,6 @@ export const getSearchActivities = async (req, res) => {
         default: return new Date(0);
       }
     })();
-    console.log(timeFrame, child.monitoredUrls)
     const searches = [];
     (child.monitoredUrls || []).forEach(urlObj => {
       if (new Date(urlObj.lastUpdated) >= dateLimit) {

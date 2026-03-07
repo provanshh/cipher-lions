@@ -1,12 +1,12 @@
-
 import { cn } from "@/lib/utils";
+import { ScrollReveal } from "@/components/animations/ScrollReveal";
 
 interface SectionHeadingProps {
   title: string;
   subtitle?: string;
   centered?: boolean;
   className?: string;
-  glowColor?: "purple" | "blue";
+  badge?: string;
 }
 
 export const SectionHeading = ({
@@ -14,18 +14,23 @@ export const SectionHeading = ({
   subtitle,
   centered = false,
   className,
-  glowColor = "purple"
+  badge,
 }: SectionHeadingProps) => {
-  const glowClass = glowColor === "purple" ? "neon-text" : "neon-blue-text";
-  
   return (
-    <div className={cn(
-      "mb-12",
-      centered ? "text-center" : "text-left",
-      className
-    )}>
-      <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${glowClass}`}>{title}</h2>
-      {subtitle && <p className="text-lg text-gray-300 font-medium">{subtitle}</p>}
-    </div>
+    <ScrollReveal className={cn("mb-14", centered && "text-center", className)}>
+      {badge && (
+        <div className={cn("mb-4", centered && "flex justify-center")}>
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+            {badge}
+          </span>
+        </div>
+      )}
+      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">{title}</h2>
+      {subtitle && (
+        <p className={cn("text-lg text-muted-foreground max-w-2xl leading-relaxed", centered && "mx-auto")}>
+          {subtitle}
+        </p>
+      )}
+    </ScrollReveal>
   );
 };

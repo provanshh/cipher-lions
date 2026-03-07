@@ -11,16 +11,13 @@ export const getAllChildren = async (req, res) => {
       .populate({
         path: 'children',
         model: 'Child',
-        select: 'name email' //  Only return needed fields
+        select: 'name email status extensionToken blockedUrls monitoredUrls incognitoAlerts lastHeartbeat'
       });
 
     if (!parent) {
       return res.status(404).json({ message: "Parent not found" });
     }
-    // console.log(parent.children)
-
-
-    res.json(parent.children); // ✅ Full profiles, not just IDs
+    res.json(parent.children);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

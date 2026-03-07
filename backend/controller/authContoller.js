@@ -55,10 +55,7 @@ export const getParent=async(req,res)=>{
      const { name } = parent;
     res.json({ name, email });
   
-} catch (error) 
-{
-  console.log(error)
-  res.status(404).json({error})
-  
+} catch (error) {
+  res.status(500).json({ message: "Server error" });
 }
 }

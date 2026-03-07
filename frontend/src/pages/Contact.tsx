@@ -1,177 +1,101 @@
-
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { SectionHeading } from "@/components/SectionHeading";
-import { Button } from "@/components/Button";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
+const contactInfo = [
+  { icon: Mail, label: "Email", value: "support@cipherguard.com" },
+  { icon: Phone, label: "Phone", value: "+1 (555) 123-4567" },
+  { icon: MapPin, label: "Office", value: "123 Security Street, San Francisco, CA 94103" },
+  { icon: Clock, label: "Hours", value: "Monday - Friday: 9am - 5pm" },
+];
+
+export default function Contact() {
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
     toast.success("Your message has been sent! We'll get back to you soon.");
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+    setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
-      <main className="flex-1 pt-28 pb-20">
-        <section className="px-6 md:px-12 lg:px-24 bg-[#0A0A14]">
-          <div className="max-w-7xl mx-auto">
-            <SectionHeading
-              title="Contact Us"
-              subtitle="Get in touch with our team. We're here to help with any questions about our product."
-              centered={true}
-            />
-            
-            <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1">
-                <div className="bg-[#171723] rounded-xl border border-[#2A2A3C] p-6 space-y-8">
-                  <h3 className="text-xl font-semibold text-white">Contact Information</h3>
-                  
-                  <div className="space-y-6">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cipher-purple/10 flex items-center justify-center">
-                        <Mail className="h-5 w-5 text-cipher-purple" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-400">Email</h4>
-                        <p className="text-white">support@cipherguard.com</p>
-                      </div>
+
+      <main className="flex-1 pt-28 pb-20 px-6">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeading
+            title="Contact Us"
+            subtitle="Get in touch with our team. We're here to help with any questions."
+            centered
+          />
+
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6 space-y-6">
+                <h3 className="text-lg font-semibold">Contact Information</h3>
+                {contactInfo.map((item) => (
+                  <div key={item.label} className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <item.icon className="h-4 w-4 text-primary" />
                     </div>
-                    
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cipher-blue/10 flex items-center justify-center">
-                        <Phone className="h-5 w-5 text-cipher-blue" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-400">Phone</h4>
-                        <p className="text-white">+1 (555) 123-4567</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cipher-purple/10 flex items-center justify-center">
-                        <MapPin className="h-5 w-5 text-cipher-purple" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-400">Office</h4>
-                        <p className="text-white">123 Security Street</p>
-                        <p className="text-white">San Francisco, CA 94103</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cipher-blue/10 flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-cipher-blue" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-400">Working Hours</h4>
-                        <p className="text-white">Monday - Friday: 9am - 5pm</p>
-                        <p className="text-white">Weekend: Closed</p>
-                      </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-sm">{item.value}</p>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              <div className="lg:col-span-2">
-                <div className="bg-[#171723] rounded-xl border border-[#2A2A3C] p-6">
-                  <h3 className="text-xl font-semibold text-white mb-6">Send Us a Message</h3>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                        <input
-                          type="text"
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-4 py-3 bg-[#11111D] border border-[#2A2A3C] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cipher-purple"
-                          placeholder="Your name"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-4 py-3 bg-[#11111D] border border-[#2A2A3C] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cipher-purple"
-                          placeholder="Your email"
-                        />
-                      </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-6">Send Us a Message</h3>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" required />
                     </div>
-                    
-                    <div>
-                      <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-1">Subject</label>
-                      <input
-                        type="text"
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-[#11111D] border border-[#2A2A3C] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cipher-purple"
-                        placeholder="How can we help you?"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
                     </div>
-                    
-                    <div>
-                      <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">Message</label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        rows={6}
-                        className="w-full px-4 py-3 bg-[#11111D] border border-[#2A2A3C] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cipher-purple resize-none"
-                        placeholder="Tell us more about your inquiry..."
-                      ></textarea>
-                    </div>
-                    
-                    <div className="flex justify-end">
-                      <Button variant="blue" type="submit">Send Message</Button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject</Label>
+                    <Input id="subject" name="subject" value={formData.subject} onChange={handleChange} placeholder="How can we help?" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder="Tell us more..." rows={5} required />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="submit" className="gap-1.5">
+                      <Send className="h-4 w-4" />
+                      Send Message
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
-        </section>
+        </div>
       </main>
-      
+
       <Footer />
     </div>
   );
-};
-
-export default Contact;
+}

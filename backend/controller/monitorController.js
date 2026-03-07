@@ -1,12 +1,11 @@
-// Called from extension to send current URL
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import Child from "../models/child.js";
 import parent from "../models/parent.js"
 import Log from "../models/log.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
 
 export const monitorUrl = async (req, res) => {
-  console.log("request arrived");
 
   try {
     const token = req.headers.authorization?.split(" ")[1];
@@ -121,28 +120,25 @@ export const activateExtension = async (req, res) => {
       });
     }
 
-    // Find parent to verify password
     const parentDoc = await parent.findOne({ children: child._id });
     if (!parentDoc) return res.status(404).json({ message: "Parent not found" });
 
-    if (password !== parentDoc.password) {
+    const validPassword = await bcrypt.compare(password, parentDoc.password);
+    if (!validPassword) {
       return res.status(401).json({ message: "Invalid parent password" });
     }
 
-    // Update status
     child.lastHeartbeat = new Date();
     child.status = 'online';
     await child.save();
 
-    if (parentDoc) {
-      await sendTelegramNotification(parentDoc.email, `Extension Activation: The extension for child ${child.name} has been connected.`);
-    } else {
-      await sendTelegramNotification(null, `Extension Activation (Parent Unknown): The extension for child ${child.name} has been connected.`);
-    }
+    await sendTelegramNotification(
+      parentDoc.email,
+      `Extension Activation: The extension for child ${child.name} has been connected.`
+    );
 
     res.status(200).json({ message: "Extension activated" });
   } catch (error) {
-    console.error("Activation Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -163,12 +159,11 @@ export const disconnectExtension = async (req, res) => {
       });
     }
 
-    // Find parent to verify password
     const parentDoc = await parent.findOne({ children: child._id });
     if (!parentDoc) return res.status(404).json({ message: "Parent not found" });
 
-    if (password !== parentDoc.password) {
-      // Increment failed attempts
+    const validPassword = await bcrypt.compare(password, parentDoc.password);
+    if (!validPassword) {
       child.failedAttempts = (child.failedAttempts || 0) + 1;
 
       if (child.failedAttempts >= 3) {
@@ -210,15 +205,13 @@ export const disconnectExtension = async (req, res) => {
     child.status = 'offline';
     await child.save();
 
-    if (parentDoc) {
-      await sendTelegramNotification(parentDoc.email, `Extension Disconnect: The extension for child ${child.name} has been disconnected.`);
-    } else {
-      await sendTelegramNotification(null, `Extension Disconnect (Parent Unknown): The extension for child ${child.name} has been disconnected.`);
-    }
+    await sendTelegramNotification(
+      parentDoc.email,
+      `Extension Disconnect: The extension for child ${child.name} has been disconnected.`
+    );
 
     res.status(200).json({ message: "Extension disconnected" });
   } catch (error) {
-    console.error("Disconnect Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
