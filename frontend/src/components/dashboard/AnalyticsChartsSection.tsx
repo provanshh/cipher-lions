@@ -118,7 +118,7 @@ export function AnalyticsChartsSection({ childEmail }: AnalyticsChartsSectionPro
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Browsing Activity (7 days)</CardTitle>
+          <CardTitle className="text-base heading-serif">Browsing Activity (7 days)</CardTitle>
           <p className="text-xs text-muted-foreground">Daily screen time in minutes</p>
         </CardHeader>
         <CardContent>
@@ -136,7 +136,7 @@ export function AnalyticsChartsSection({ childEmail }: AnalyticsChartsSectionPro
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Category Distribution</CardTitle>
+          <CardTitle className="text-base heading-serif">Category Distribution</CardTitle>
           <p className="text-xs text-muted-foreground">Sites by category</p>
         </CardHeader>
         <CardContent>

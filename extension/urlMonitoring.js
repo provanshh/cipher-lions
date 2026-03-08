@@ -61,8 +61,25 @@ async function checkAndBlockExtensionsPage(tabId, url) {
   const { token } = await chrome.storage.local.get("token");
   if (!token) return;
 
-  const { superSafeSettings } = await chrome.storage.local.get("superSafeSettings");
-  const blockEnabled = superSafeSettings?.blockExtensionsPage !== false;
+  let blockEnabled = false;
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/supersafe/settings`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.ok) {
+      const settings = await res.json();
+      await chrome.storage.local.set({ superSafeSettings: settings });
+      blockEnabled = settings.blockExtensionsPage !== false;
+    }
+  } catch {
+    const { superSafeSettings } = await chrome.storage.local.get("superSafeSettings");
+    blockEnabled = superSafeSettings?.blockExtensionsPage !== false;
+  }
+
   if (!blockEnabled) return;
 
   try {

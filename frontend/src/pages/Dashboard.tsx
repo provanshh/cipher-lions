@@ -3,9 +3,6 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AnalyticsCards } from "@/components/dashboard/AnalyticsCards";
 import { AnalyticsChartsSection } from "@/components/dashboard/AnalyticsChartsSection";
 import { OverviewPanel } from "@/components/dashboard/OverviewPanel";
-import { ActivityTable } from "@/components/dashboard/ActivityTable";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-
 import { ProfilesPanel } from "@/components/dashboard/ProfilesPanel";
 import { ReportsPanel } from "@/components/dashboard/ReportsPanel";
 import { SettingsPanel } from "@/components/dashboard/SettingsPanel";
@@ -39,24 +36,16 @@ export default function Dashboard() {
             {activeView === "overview" && (
               <div className="space-y-6">
                 {/* Top: analytics cards */}
-                <AnalyticsCards childEmail={selectedChildEmail} />
+                <AnalyticsCards childEmail={selectedChildEmail} onNavigateToSettings={() => setActiveView("settings")} />
 
                 {/* Charts */}
                 <AnalyticsChartsSection childEmail={selectedChildEmail} />
 
-                {/* Middle: overview + activity */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                  <div className="xl:col-span-2">
-                    <OverviewPanel
-                      childEmail={selectedChildEmail}
-                      childName={childProfiles.find((c) => c.email === selectedChildEmail)?.name ?? null}
-                    />
-                  </div>
-                  <div className="xl:col-span-1 space-y-4">
-                    <ActivityTable childEmail={selectedChildEmail} />
-                    <ActivityFeed />
-                  </div>
-                </div>
+                {/* Overview with integrated Activity Monitor & Feed */}
+                <OverviewPanel
+                  childEmail={selectedChildEmail}
+                  childName={childProfiles.find((c) => c.email === selectedChildEmail)?.name ?? null}
+                />
 
                 {/* Bottom: children / profiles summary */}
                 <ChildrenSection />

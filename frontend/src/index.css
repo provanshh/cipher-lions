@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -98,6 +98,11 @@
   }
 }
 
+.heading-serif {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+}
+
 @keyframes meteor {
   0% {
     transform: translateY(0) translateX(0) rotate(215deg);
@@ -139,3 +144,16 @@ html {
     scroll-behavior: auto;
   }
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:hover {
+  scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: transparent; border-radius: 9999px; }
+*:hover::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.2); }
+*:hover::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }

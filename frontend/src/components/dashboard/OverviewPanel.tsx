@@ -25,6 +25,8 @@ import {
   useUnblockUrl,
 } from "@/hooks/use-children";
 import type { CategoryCount, MonitoredUrl } from "@/types/models";
+import { ActivityTable } from "@/components/dashboard/ActivityTable";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 
 interface OverviewPanelProps {
   childEmail: string | null;
@@ -130,12 +132,12 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
       </TabsList>
 
       <TabsContent value="parent" className="space-y-4">
+        {/* Row 1: Activity Overview + Incognito Alerts */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Chart */}
           <Card className="md:col-span-2">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Activity Overview</CardTitle>
+                <CardTitle className="text-base heading-serif">Activity Overview</CardTitle>
                 <Badge variant="secondary" className="text-xs font-normal">Last 4 days</Badge>
               </div>
             </CardHeader>
@@ -152,11 +154,10 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
             </CardContent>
           </Card>
 
-          {/* Alerts */}
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Incognito Alerts</CardTitle>
+                <CardTitle className="text-base heading-serif">Incognito Alerts</CardTitle>
                 {alerts.length > 0 && (
                   <Button
                     variant="ghost"
@@ -192,10 +193,14 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
               )}
             </CardContent>
           </Card>
+        </div>
 
-          {/* Recent Searches */}
+        {/* Row 2: Activity Monitor + Recent Searches + Website Categories */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <ActivityTable childEmail={childEmail} />
+
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Recent Searches</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base heading-serif">Recent Searches</CardTitle></CardHeader>
             <CardContent>
               {usageLoading ? (
                 <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
@@ -217,9 +222,8 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
             </CardContent>
           </Card>
 
-          {/* Categories */}
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Website Categories</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base heading-serif">Website Categories</CardTitle></CardHeader>
             <CardContent>
               {usageLoading ? (
                 <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
@@ -242,10 +246,12 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
               )}
             </CardContent>
           </Card>
+        </div>
 
-          {/* Block Website */}
+        {/* Row 3: Block Website + Activity Feed */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Block Website</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base heading-serif">Block Website</CardTitle></CardHeader>
             <CardContent>
               <form onSubmit={handleBlock} className="flex gap-2 mb-3">
                 <Input
@@ -285,6 +291,8 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
               )}
             </CardContent>
           </Card>
+
+          <ActivityFeed />
         </div>
       </TabsContent>
 
@@ -293,7 +301,7 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
           <Card className="lg:col-span-2">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2"><Search className="h-4 w-4 text-primary" />All Search Queries</CardTitle>
+                <CardTitle className="text-base heading-serif flex items-center gap-2"><Search className="h-4 w-4 text-primary" />All Search Queries</CardTitle>
                 <span className="text-xs text-muted-foreground">{recentSearches.length} total</span>
               </div>
             </CardHeader>

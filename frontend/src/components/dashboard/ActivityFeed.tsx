@@ -19,7 +19,7 @@ export function ActivityFeed() {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
+        <CardTitle className="text-base heading-serif flex items-center gap-2">
           <Activity className="h-4 w-4" />
           Activity Feed
         </CardTitle>

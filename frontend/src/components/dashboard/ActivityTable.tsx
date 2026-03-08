@@ -26,7 +26,7 @@ export function ActivityTable({ childEmail }: ActivityTableProps) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Activity Monitor</CardTitle>
+          <CardTitle className="text-base heading-serif">Activity Monitor</CardTitle>
           <div className="flex items-center gap-2">
             <Select value={timeFrame} onValueChange={setTimeFrame}>
               <SelectTrigger className="h-8 w-[130px] text-xs">
