@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SuperSafeToggle } from "./SuperSafeToggle";
 import { BlockExtensionsPageToggle } from "./BlockExtensionsPageToggle";
 import { AllowedSitesManager } from "./AllowedSitesManager";
+import { CustomBlockedWords } from "./CustomBlockedWords";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { VoicePreviewPlayer } from "./VoicePreviewPlayer";
 
@@ -29,6 +30,18 @@ export function SuperSafeSettingsSection() {
         </CardHeader>
         <CardContent>
           <BlockExtensionsPageToggle />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Custom Blocked Words</CardTitle>
+          <CardDescription>
+            Add your own words to the block list. Any search containing these words will be automatically closed and you'll be notified.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CustomBlockedWords />
         </CardContent>
       </Card>
     </div>

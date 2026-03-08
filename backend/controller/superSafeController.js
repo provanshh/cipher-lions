@@ -30,6 +30,7 @@ export const getSettings = async (req, res) => {
     res.json({
       enabled: settings.enabled,
       blockExtensionsPage: settings.blockExtensionsPage,
+      customBlockedWords: settings.customBlockedWords || [],
       voiceMessageUrl: settings.voiceMessageUrl,
     });
   } catch (err) {
@@ -112,6 +113,47 @@ export const deleteAllowedSite = async (req, res) => {
     await sendTelegramNotification(req.user.email, `🗑️ SuperSafe: ${siteDomain} removed from allowed sites`);
 
     res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const addCustomBlockedWord = async (req, res) => {
+  try {
+    const { word } = req.body;
+    if (!word || !word.trim()) return res.status(400).json({ message: "Word is required" });
+    const parent = await Parent.findOne({ email: req.user.email });
+    if (!parent) return res.status(404).json({ message: "Parent not found" });
+    const settings = await ensureSettings(parent._id);
+    const normalized = word.trim().toLowerCase();
+    if (settings.customBlockedWords.includes(normalized)) {
+      return res.status(409).json({ message: "Word already exists" });
+    }
+    settings.customBlockedWords.push(normalized);
+    await settings.save();
+
+    await sendTelegramNotification(req.user.email, `🚫 Custom blocked word added: "${normalized}"`);
+
+    res.json({ customBlockedWords: settings.customBlockedWords });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const removeCustomBlockedWord = async (req, res) => {
+  try {
+    const { word } = req.body;
+    if (!word) return res.status(400).json({ message: "Word is required" });
+    const parent = await Parent.findOne({ email: req.user.email });
+    if (!parent) return res.status(404).json({ message: "Parent not found" });
+    const settings = await ensureSettings(parent._id);
+    const normalized = word.trim().toLowerCase();
+    settings.customBlockedWords = settings.customBlockedWords.filter((w) => w !== normalized);
+    await settings.save();
+
+    await sendTelegramNotification(req.user.email, `✅ Custom blocked word removed: "${normalized}"`);
+
+    res.json({ customBlockedWords: settings.customBlockedWords });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

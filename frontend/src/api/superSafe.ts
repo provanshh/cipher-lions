@@ -3,6 +3,7 @@ import apiClient from "./client";
 export interface SuperSafeSettings {
   enabled: boolean;
   blockExtensionsPage: boolean;
+  customBlockedWords: string[];
   voiceMessageUrl: string | null;
 }
 
@@ -39,6 +40,16 @@ export async function addAllowedSite(domain: string): Promise<AllowedSite> {
 
 export async function deleteAllowedSite(id: string): Promise<void> {
   await apiClient.delete(`/api/supersafe/allowed-sites/${id}`);
+}
+
+export async function addCustomBlockedWord(word: string): Promise<{ customBlockedWords: string[] }> {
+  const { data } = await apiClient.post("/api/supersafe/custom-blocked-words", { word });
+  return data;
+}
+
+export async function removeCustomBlockedWord(word: string): Promise<{ customBlockedWords: string[] }> {
+  const { data } = await apiClient.delete("/api/supersafe/custom-blocked-words", { data: { word } });
+  return data;
 }
 
 export async function uploadVoiceMessage(formData: FormData): Promise<{ voiceMessageUrl: string }> {
