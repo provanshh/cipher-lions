@@ -6,6 +6,7 @@ import monitorRoutes from "./routes/monitorRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
 import superSafeRoutes from "./routes/superSafeRoutes.js";
+import timedBlockRoutes from "./routes/timedBlockRoutes.js";
 import { startHeartbeatMonitor } from './utillity/cronMonitor.js';
 dotenv.config();
 
@@ -52,6 +53,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/child", childRoutes);
 app.use("/api/parent", parentRoutes);
 app.use("/api/supersafe", superSafeRoutes);
+app.use("/api/timed-blocks", timedBlockRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

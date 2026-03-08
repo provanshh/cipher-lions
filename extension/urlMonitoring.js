@@ -208,6 +208,52 @@ async function updateActiveTabToBackend() {
   }
 }
 
+/* ================= TIMED BLOCK CHECK ================= */
+
+async function checkTimedBlock(tabId, url) {
+  try {
+    const domain = new URL(url).hostname;
+    const { token } = await chrome.storage.local.get("token");
+    if (!token) return false;
+
+    const res = await fetch(`${BACKEND_URL}/api/timed-blocks/check`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ domain }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (!data.blocked) return false;
+
+    // Check for duplicate tabs of the same domain — if found, penalize (set timer to 0) and close ALL
+    const allTabs = await chrome.tabs.query({});
+    const matchingTabs = allTabs.filter((t) => {
+      try { return t.url && new URL(t.url).hostname === domain; } catch { return false; }
+    });
+
+    if (matchingTabs.length > 1) {
+      // Duplicate detected — penalize
+      try {
+        await fetch(`${BACKEND_URL}/api/timed-blocks/penalize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ domain }),
+        });
+      } catch {}
+      for (const t of matchingTabs) {
+        try { await chrome.tabs.remove(t.id); } catch {}
+      }
+      return true;
+    }
+
+    // Single tab — just close it
+    try { await chrome.tabs.remove(tabId); } catch {}
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /* ================= BLOCKED SITE CHECK ================= */
 
 async function checkUrlWithBackend(domain) {
@@ -263,11 +309,12 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
     return;
   }
   if (changeInfo.url?.startsWith("http")) {
-    const blocked = await checkAndBlockSearchQuery(tabId, changeInfo.url);
-    if (!blocked) {
-      handleTab(tabId, changeInfo.url);
-      updateActiveTabToBackend();
-    }
+    const searchBlocked = await checkAndBlockSearchQuery(tabId, changeInfo.url);
+    if (searchBlocked) return;
+    const timedBlocked = await checkTimedBlock(tabId, changeInfo.url);
+    if (timedBlocked) return;
+    handleTab(tabId, changeInfo.url);
+    updateActiveTabToBackend();
   }
 });
 
@@ -279,11 +326,12 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
       return;
     }
     if (tab.url?.startsWith("http")) {
-      const blocked = await checkAndBlockSearchQuery(tabId, tab.url);
-      if (!blocked) {
-        handleTab(tabId, tab.url);
-        updateActiveTabToBackend();
-      }
+      const searchBlocked = await checkAndBlockSearchQuery(tabId, tab.url);
+      if (searchBlocked) return;
+      const timedBlocked = await checkTimedBlock(tabId, tab.url);
+      if (timedBlocked) return;
+      handleTab(tabId, tab.url);
+      updateActiveTabToBackend();
     }
   } catch {}
 });

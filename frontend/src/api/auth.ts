@@ -31,6 +31,11 @@ export async function signup(payload: SignupPayload): Promise<AuthResponse> {
   return data;
 }
 
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  const { data } = await apiClient.put("/api/auth/change-password", { currentPassword, newPassword });
+  return data;
+}
+
 export async function fetchParentProfile(): Promise<ParentProfile> {
   const { data } = await apiClient.get("/api/auth/user");
   return data;

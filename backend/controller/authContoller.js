@@ -46,6 +46,29 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+export const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: "Current and new passwords are required" });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: "New password must be at least 6 characters" });
+  }
+  try {
+    const parent = await Parent.findOne({ email: req.user.email });
+    if (!parent) return res.status(404).json({ message: "User not found" });
+
+    const valid = await bcrypt.compare(currentPassword, parent.password);
+    if (!valid) return res.status(401).json({ message: "Current password is incorrect" });
+
+    parent.password = await bcrypt.hash(newPassword, 10);
+    await parent.save();
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 export const getParent=async(req,res)=>{
   
   try {

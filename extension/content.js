@@ -528,16 +528,60 @@ const offensiveWords = [
 
 /* ================= UTILITIES ================= */
 
+const BACKEND_URL = "https://cipher-shds.onrender.com";
+
 // Escape regex special chars
 function escapeRegex(word) {
   return word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// Build safe regex
-const offensiveRegex = new RegExp(
-  `\\b(${offensiveWords.map(escapeRegex).join("|")})\\b`,
-  "gi"
-);
+// Build regex from a word list
+function buildWordRegex(words) {
+  if (!words.length) return null;
+  return new RegExp(
+    `(${words.map(escapeRegex).join("|")})`,
+    "gi"
+  );
+}
+
+let offensiveRegex = buildWordRegex(offensiveWords);
+let customRegex = null;
+
+// Fetch custom words directly from the backend (doesn't depend on service worker sync)
+async function fetchCustomWordsFromBackend() {
+  try {
+    const stored = await chrome.storage.local.get("token");
+    const token = stored?.token;
+    if (!token) return;
+
+    const res = await fetch(`${BACKEND_URL}/api/supersafe/settings`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) return;
+
+    const settings = await res.json();
+    const words = settings?.customBlockedWords;
+    if (Array.isArray(words) && words.length > 0) {
+      customRegex = buildWordRegex(words);
+      traverseDOM(document.body);
+    }
+  } catch {}
+}
+
+// Also try loading from local storage as a fast fallback
+function loadCustomWordsFromStorage() {
+  chrome.storage.local.get("superSafeSettings", (result) => {
+    const words = result?.superSafeSettings?.customBlockedWords;
+    if (Array.isArray(words) && words.length > 0 && !customRegex) {
+      customRegex = buildWordRegex(words);
+      traverseDOM(document.body);
+    }
+  });
+}
 
 // Inject blur CSS
 const style = document.createElement("style");
@@ -552,11 +596,11 @@ document.documentElement.appendChild(style);
 /* ================= TEXT FILTER ================= */
 
 function cleanText(node) {
-  if (node.nodeType === Node.TEXT_NODE) {
-    if (offensiveRegex.test(node.nodeValue)) {
-      node.nodeValue = node.nodeValue.replace(offensiveRegex, "****");
-    }
-  }
+  if (node.nodeType !== Node.TEXT_NODE || !node.nodeValue) return;
+  let val = node.nodeValue;
+  if (offensiveRegex) val = val.replace(offensiveRegex, "****");
+  if (customRegex) val = val.replace(customRegex, "****");
+  if (val !== node.nodeValue) node.nodeValue = val;
 }
 
 /* ================= IMAGE FILTER (ALT BASED) ================= */
@@ -641,6 +685,23 @@ function traverseDOM(root) {
 
 traverseDOM(document.body);
 blurOffensiveImages();
+
+// Load custom words: fast from cache, then fresh from backend
+loadCustomWordsFromStorage();
+fetchCustomWordsFromBackend();
+
+// Re-apply when settings change in storage (from service worker sync)
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.superSafeSettings) {
+    const words = changes.superSafeSettings.newValue?.customBlockedWords;
+    if (Array.isArray(words) && words.length > 0) {
+      customRegex = buildWordRegex(words);
+    } else {
+      customRegex = null;
+    }
+    traverseDOM(document.body);
+  }
+});
 
 /* ================= OBSERVER ================= */
 

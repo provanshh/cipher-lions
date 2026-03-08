@@ -4,6 +4,7 @@ import {
   Users,
   FileText,
   Settings,
+  Timer,
   LogOut,
   Plus,
   ChevronLeft,
@@ -40,6 +41,7 @@ const navItems = [
   { id: "profiles", icon: Users, label: "Profiles" },
   { id: "reports", icon: FileText, label: "Reports" },
   { id: "settings", icon: Settings, label: "Settings" },
+  { id: "timer-based", icon: Timer, label: "Timer Based" },
 ];
 
 export function DashboardSidebar({

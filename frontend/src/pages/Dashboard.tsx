@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AnalyticsCards } from "@/components/dashboard/AnalyticsCards";
 import { AnalyticsChartsSection } from "@/components/dashboard/AnalyticsChartsSection";
@@ -6,21 +6,35 @@ import { OverviewPanel } from "@/components/dashboard/OverviewPanel";
 import { ProfilesPanel } from "@/components/dashboard/ProfilesPanel";
 import { ReportsPanel } from "@/components/dashboard/ReportsPanel";
 import { SettingsPanel } from "@/components/dashboard/SettingsPanel";
+import { TimerBlockPanel } from "@/components/dashboard/TimerBlockPanel";
 import { useDashboardGuard } from "@/hooks/useDashboardGuard";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { ChildrenSection } from "@/components/dashboard/ChildrenSection";
 import { VoiceAssistant } from "@/components/voice/VoiceAssistant";
 import { AddChildModal } from "@/components/child/AddChildModal";
+import { DashboardLockScreen } from "@/components/layout/DashboardLockScreen";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState("overview");
   const [showAddChildModal, setShowAddChildModal] = useState(false);
+  const [isLocked, setIsLocked] = useState(() => sessionStorage.getItem("dashboard_locked") === "true");
   const { isAllowed, showVerification } = useDashboardGuard();
   const qc = useQueryClient();
 
+  const handleLockEvent = useCallback(() => setIsLocked(true), []);
+
+  useEffect(() => {
+    window.addEventListener("dashboard-locked", handleLockEvent);
+    return () => window.removeEventListener("dashboard-locked", handleLockEvent);
+  }, [handleLockEvent]);
+
   if (!isAllowed) {
     return null;
+  }
+
+  if (isLocked) {
+    return <DashboardLockScreen onUnlock={() => setIsLocked(false)} />;
   }
 
   return (
@@ -65,6 +79,8 @@ export default function Dashboard() {
             )}
 
             {activeView === "settings" && <SettingsPanel />}
+
+            {activeView === "timer-based" && <TimerBlockPanel />}
           </>
         )}
       </DashboardLayout>
