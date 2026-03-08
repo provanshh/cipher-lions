@@ -43,7 +43,7 @@ export const addTimedBlock = async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    await sendTelegramNotification(req.user.email, `⏱️ Timed block: ${normalized} blocked for ${minutes} min`);
+    await sendTelegramNotification(req.user.email, `⏱️ Timed access: ${normalized} allowed for ${minutes} min`);
 
     res.status(201).json(block);
   } catch (err) {
@@ -58,7 +58,7 @@ export const removeTimedBlock = async (req, res) => {
 
     const block = await TimedBlock.findOneAndDelete({ _id: req.params.id, parent: parent._id });
     if (block) {
-      await sendTelegramNotification(req.user.email, `✅ Timed block removed: ${block.domain}`);
+      await sendTelegramNotification(req.user.email, `✅ Timed access removed: ${block.domain}`);
     }
     res.status(204).end();
   } catch (err) {
@@ -122,7 +122,7 @@ export const penalizeTimedBlock = async (req, res) => {
     if (block) {
       block.expiresAt = new Date(0);
       await block.save();
-      await sendTelegramNotification(req.user.email, `🚨 Timed block penalty: ${normalized} timer set to 0 (duplicate tabs detected)`);
+      await sendTelegramNotification(req.user.email, `🚨 Timed access revoked: ${normalized} — duplicate tabs detected, access removed`);
     }
 
     res.json({ ok: true });

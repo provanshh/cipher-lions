@@ -89,7 +89,7 @@ export function DashboardLayout({ activeView, onViewChange, children, onAddChild
     profiles: { title: "Profiles", subtitle: "Child profiles" },
     reports: { title: "Reports", subtitle: "Activity reports" },
     settings: { title: "Settings", subtitle: "Account preferences" },
-    "timer-based": { title: "Timer Based", subtitle: "Time-limited website blocking" },
+    "timer-based": { title: "Timer Based", subtitle: "Temporary website access" },
   };
 
   const current = viewTitles[activeView] || viewTitles.overview;

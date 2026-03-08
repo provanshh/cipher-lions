@@ -6,6 +6,7 @@ import Log from "../models/log.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
 import SuperSafeSettings from "../models/superSafeSettings.js";
 import AllowedSite from "../models/allowedSite.js";
+import TimedBlock from "../models/timedBlock.js";
 import { logActivity } from "../utillity/activityService.js";
 
 export const monitorUrl = async (req, res) => {
@@ -173,7 +174,27 @@ export const checkUrl = async (req, res) => {
     console.error("SuperSafe check error:", err);
   }
 
-  const blocked = isManuallyBlocked || superSafeBlocked;
+  // Check if there's an active timed access window that overrides blocks
+  let timedAccessActive = false;
+  try {
+    const parentDoc = await parent.findOne({ children: child._id });
+    if (parentDoc) {
+      const normalized = url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].toLowerCase();
+      const parts = normalized.split(".");
+      const rootDomain = parts.length > 2 ? parts.slice(-2).join(".") : normalized;
+
+      const timedBlock = await TimedBlock.findOne({
+        parent: parentDoc._id,
+        expiresAt: { $gt: new Date() },
+        $or: [{ domain: normalized }, { domain: rootDomain }],
+      });
+      if (timedBlock) timedAccessActive = true;
+    }
+  } catch (err) {
+    console.error("TimedBlock check error:", err);
+  }
+
+  const blocked = (isManuallyBlocked || superSafeBlocked) && !timedAccessActive;
   // Log and notify on blocked events
   if (blocked) {
     try {

@@ -68,7 +68,7 @@ export function TimerBlockPanel() {
       });
       setDomain("");
       setMinutes("");
-      toast.success(`${block.domain} blocked for ${m} minutes`);
+      toast.success(`${block.domain} accessible for ${m} minutes`);
     } catch {
       toast.error("Failed to add timed block");
     } finally { setAdding(false); }
@@ -91,10 +91,10 @@ export function TimerBlockPanel() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base heading-serif flex items-center gap-2">
             <Timer className="h-4 w-4" />
-            Timer Based Blocker
+            Timer Based Access
           </CardTitle>
           <CardDescription>
-            Block a website for a specific duration. If the child opens the same site in multiple tabs, the timer drops to zero and all tabs close immediately.
+            Grant temporary access to a blocked website. The site will be accessible for the set duration even if SuperSafe mode is on. If the child opens it in multiple tabs, the timer drops to zero and all tabs close.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -117,7 +117,7 @@ export function TimerBlockPanel() {
             />
             <Button type="submit" size="sm" className="h-9 gap-1.5 shrink-0" disabled={adding}>
               {adding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-              Block
+              Allow
             </Button>
           </form>
         </CardContent>
