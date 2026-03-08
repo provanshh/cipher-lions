@@ -121,17 +121,10 @@ const BLOCKED_SEARCH_KEYWORDS = [
   "chrome extension remove", "how to remove chrome extension",
 ];
 
-async function getAllBlockedKeywords() {
-  const { superSafeSettings } = await chrome.storage.local.get("superSafeSettings");
-  const custom = superSafeSettings?.customBlockedWords || [];
-  return [...BLOCKED_SEARCH_KEYWORDS, ...custom];
-}
-
-async function containsBlockedKeyword(query) {
+function containsBlockedKeyword(query) {
   if (!query) return null;
   const lower = query.toLowerCase();
-  const allKeywords = await getAllBlockedKeywords();
-  return allKeywords.find((kw) => lower.includes(kw)) || null;
+  return BLOCKED_SEARCH_KEYWORDS.find((kw) => lower.includes(kw)) || null;
 }
 
 async function alertBlockedSearch(token, searchQuery, domain) {
@@ -156,7 +149,7 @@ async function checkAndBlockSearchQuery(tabId, url) {
     }
     const params = new URLSearchParams(urlObj.search);
     const query = params.get("q") || params.get("p") || "";
-    const matched = await containsBlockedKeyword(query);
+    const matched = containsBlockedKeyword(query);
     if (!matched) return false;
 
     const { token } = await chrome.storage.local.get("token");

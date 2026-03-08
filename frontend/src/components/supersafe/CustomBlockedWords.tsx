@@ -10,23 +10,6 @@ import {
   removeCustomBlockedWord,
 } from "@/api/superSafe";
 
-const BUILTIN_WORDS = [
-  "proxy", "proxies", "web proxy", "free proxy",
-  "vpn", "free vpn", "vpn extension", "vpn chrome",
-  "unblock sites", "unblock websites", "unblock school",
-  "bypass filter", "bypass blocker", "bypass parental control",
-  "bypass restriction", "bypass firewall",
-  "how to unblock", "how to bypass", "how to disable parental",
-  "remove parental control", "disable parental control",
-  "turn off parental control", "get around parental control",
-  "unblocker", "site unblocker", "ultrasurf", "psiphon",
-  "hide browsing", "hide history", "anonymous browsing",
-  "tor browser", "tor download",
-  "disable cipherguard", "remove cipherguard", "uninstall cipherguard",
-  "disable extension", "remove extension", "uninstall extension",
-  "chrome extension remove", "how to remove chrome extension",
-];
-
 export function CustomBlockedWords() {
   const [customWords, setCustomWords] = useState<string[]>([]);
   const [input, setInput] = useState("");
@@ -46,8 +29,8 @@ export function CustomBlockedWords() {
     e.preventDefault();
     const word = input.trim().toLowerCase();
     if (!word) return;
-    if (customWords.includes(word) || BUILTIN_WORDS.includes(word)) {
-      toast({ title: "Already blocked", description: `"${word}" is already in the blocked list.`, variant: "destructive" });
+    if (customWords.includes(word)) {
+      toast({ title: "Already exists", description: `"${word}" is already in your list.`, variant: "destructive" });
       return;
     }
     setAdding(true);
@@ -55,7 +38,7 @@ export function CustomBlockedWords() {
       const res = await addCustomBlockedWord(word);
       setCustomWords(res.customBlockedWords);
       setInput("");
-      toast({ title: "Word added", description: `"${word}" will now be masked and blocked.` });
+      toast({ title: "Word added", description: `"${word}" will now appear masked in activity.` });
     } catch {
       toast({ title: "Failed to add word", variant: "destructive" });
     } finally {
@@ -68,7 +51,7 @@ export function CustomBlockedWords() {
     try {
       const res = await removeCustomBlockedWord(word);
       setCustomWords(res.customBlockedWords);
-      toast({ title: "Word removed", description: `"${word}" has been unblocked.` });
+      toast({ title: "Word removed", description: `"${word}" has been unmasked.` });
     } catch {
       toast({ title: "Failed to remove word", variant: "destructive" });
     } finally {
@@ -85,7 +68,7 @@ export function CustomBlockedWords() {
     <div className="space-y-4">
       <form onSubmit={handleAdd} className="flex gap-2">
         <Input
-          placeholder="Add a custom word to block..."
+          placeholder="e.g. proxy site name, VPN tool..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="h-9 text-sm"
@@ -101,55 +84,35 @@ export function CustomBlockedWords() {
         <div className="flex items-center justify-center py-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
+      ) : customWords.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {customWords.map((word) => (
+            <Badge
+              key={word}
+              variant="outline"
+              className="text-xs font-mono py-1 pl-2.5 pr-1 gap-1.5 border-primary/30 bg-primary/5"
+            >
+              {maskWord(word)}
+              <button
+                type="button"
+                onClick={() => handleRemove(word)}
+                disabled={removingWord === word}
+                className="ml-0.5 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors disabled:opacity-50"
+              >
+                {removingWord === word ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <X className="h-3 w-3" />
+                )}
+              </button>
+            </Badge>
+          ))}
+        </div>
       ) : (
-        <>
-          {/* Built-in words */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Built-in blocked words</p>
-            <div className="flex flex-wrap gap-1.5">
-              {BUILTIN_WORDS.map((word) => (
-                <Badge key={word} variant="secondary" className="text-xs font-mono py-1 px-2.5">
-                  {maskWord(word)}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom words */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Your custom words</p>
-            {customWords.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {customWords.map((word) => (
-                  <Badge
-                    key={word}
-                    variant="outline"
-                    className="text-xs font-mono py-1 pl-2.5 pr-1 gap-1.5 border-primary/30 bg-primary/5"
-                  >
-                    {maskWord(word)}
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(word)}
-                      disabled={removingWord === word}
-                      className="ml-0.5 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors disabled:opacity-50"
-                    >
-                      {removingWord === word ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <X className="h-3 w-3" />
-                      )}
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-3">
-                <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">No custom words added yet</span>
-              </div>
-            )}
-          </div>
-        </>
+        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-3">
+          <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">No custom words added yet</span>
+        </div>
       )}
     </div>
   );

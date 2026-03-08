@@ -37,7 +37,7 @@ export function SuperSafeSettingsSection() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Custom Blocked Words</CardTitle>
           <CardDescription>
-            Add your own words to the block list. Any search containing these words will be automatically closed and you'll be notified.
+            Add extra bypass or circumvention terms (e.g. proxy names, VPN tools) to mask them in activity. These won't close tabs — they'll just appear masked in the dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>
