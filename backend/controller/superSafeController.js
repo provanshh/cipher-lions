@@ -3,6 +3,7 @@ import fs from "fs";
 import SuperSafeSettings from "../models/superSafeSettings.js";
 import AllowedSite from "../models/allowedSite.js";
 import Parent from "../models/parent.js";
+import Child from "../models/child.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
 
 const ensureSettings = async (parentId) => {
@@ -15,7 +16,15 @@ const ensureSettings = async (parentId) => {
 
 export const getSettings = async (req, res) => {
   try {
-    const parent = await Parent.findOne({ email: req.user.email });
+    let parent = await Parent.findOne({ email: req.user.email });
+
+    if (!parent) {
+      const child = await Child.findOne({ email: req.user.email });
+      if (child) {
+        parent = await Parent.findOne({ children: child._id });
+      }
+    }
+
     if (!parent) return res.status(404).json({ message: "Parent not found" });
     const settings = await ensureSettings(parent._id);
     res.json({
