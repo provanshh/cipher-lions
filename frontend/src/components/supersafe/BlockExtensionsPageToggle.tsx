@@ -13,7 +13,7 @@ export function BlockExtensionsPageToggle() {
         const settings = await fetchSuperSafeSettings();
         setEnabled(settings.blockExtensionsPage);
       } catch {
-        toast.error("Failed to load extension protection settings");
+        // Defaults to enabled if settings can't be loaded
       } finally {
         setLoading(false);
       }

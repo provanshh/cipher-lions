@@ -42,8 +42,9 @@ export async function deleteAllowedSite(id: string): Promise<void> {
 }
 
 export async function uploadVoiceMessage(formData: FormData): Promise<{ voiceMessageUrl: string }> {
-  // Let axios set the correct multipart boundary automatically.
-  const { data } = await apiClient.post("/api/supersafe/voice-message", formData);
+  const { data } = await apiClient.post("/api/supersafe/voice-message", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data;
 }
 

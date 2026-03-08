@@ -13,7 +13,7 @@ export function VoicePreviewPlayer() {
         const { voiceMessageUrl } = await fetchVoiceMessage();
         setUrl(voiceMessageUrl);
       } catch {
-        toast.error("Failed to load voice message");
+        // Silently fail — no voice message is not an error
       } finally {
         setLoading(false);
       }
