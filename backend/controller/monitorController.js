@@ -332,4 +332,80 @@ export const disconnectExtension = async (req, res) => {
   }
 };
 
+export const tamperAlert = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const deviceId = req.headers["x-device-id"];
+
+    const child = await Child.findOne({ email });
+    if (!child) return res.status(404).json({ message: "Child not found" });
+
+    child.status = "offline";
+    await child.save();
+
+    const deviceInfo = deviceId ? ` (Device: ${deviceId.slice(0, 8)}...)` : "";
+    await logActivity({
+      child: child._id,
+      type: "TAMPER_ALERT",
+      domain: null,
+      message: `⚠️ TAMPER: Desktop agent detected extension stopped responding for ${child.name}${deviceInfo}. Extension may have been removed or disabled.`,
+    });
+
+    res.status(200).json({ message: "Tamper alert recorded" });
+  } catch (error) {
+    console.error("Tamper alert error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const tamperAlertFailed = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const deviceId = req.headers["x-device-id"] || "unknown";
+    const deviceInfo = deviceId !== "unknown" ? ` (Device: ${String(deviceId).slice(0, 8)}...)` : "";
+    const child = await Child.findOne({ email });
+    let parentEmail = null;
+    if (child) {
+      const parentDoc = await parent.findOne({ children: child._id });
+      if (parentDoc) parentEmail = parentDoc.email;
+    }
+    const msg = `⚠️ TAMPER ALERT FAILED: Desktop agent could not record tamper (backend returned 404 or error). Child: ${email}${deviceInfo}. Extension may have been removed - please check the dashboard.`;
+    await sendTelegramNotification(parentEmail, msg);
+    res.status(200).json({ message: "Telegram alert sent" });
+  } catch (error) {
+    console.error("Tamper alert failed notification error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const agentEvent = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const { type } = req.body || {};
+    const deviceId = req.headers["x-device-id"];
+
+    const child = await Child.findOne({ email });
+    if (!child) return res.status(404).json({ message: "Child not found" });
+
+    const deviceInfo = deviceId ? ` (Device: ${deviceId.slice(0, 8)}...)` : "";
+    const messages = {
+      started: `🟢 Desktop agent started for ${child.name}${deviceInfo}`,
+      stopped: `🔴 Desktop agent stopped for ${child.name}${deviceInfo}`,
+      files_tampered: `⚠️ TAMPER: Agent files or config modified for ${child.name}${deviceInfo}`,
+    };
+    const msg = messages[type] || `Agent event: ${type} for ${child.name}${deviceInfo}`;
+
+    await logActivity({
+      child: child._id,
+      type: "AGENT_EVENT",
+      domain: null,
+      message: msg,
+    });
+
+    res.status(200).json({ message: "Agent event recorded" });
+  } catch (error) {
+    console.error("Agent event error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 

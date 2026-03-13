@@ -11,6 +11,7 @@ import {
   generateChildToken,
 } from '../controller/parentContoller.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validateRequest.js';
 
 const router = express.Router();
 
@@ -21,8 +22,8 @@ router.get('/children/:id', getChildDetails);
 router.get('/children/:id/urls', getChildUrls);
 router.get('/children/:id/alerts', getChildAlerts);
 router.get('/notifications', getNotifications);
-router.post('/children/block', blockUrl);
-router.post('/children/unblock', unblockUrl);
+router.post('/children/block', validate("blockUrl"), blockUrl);
+router.post('/children/unblock', validate("unblockUrl"), unblockUrl);
 router.post('/children/:id/reset', resetTimeSpent);
 router.post('/children/:id/token', generateChildToken);
 

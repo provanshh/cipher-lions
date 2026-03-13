@@ -57,6 +57,8 @@ This repository is a monorepo with separate frontend and backend applications:
 
 - `backend/` – Express API, Mongoose models, controllers, routes, and auth middleware.
 - `frontend/` – Vite React app with pages, components, UI primitives, and hooks.
+- `extension/` – Chrome extension for URL monitoring and content filtering.
+- `desktop-agent/` – Electron desktop agent that runs on a child’s computer, receives activity from the extension, forwards to the backend, and detects tampering when the extension stops responding.
 - `WARP.md` – Agent guidance and architecture notes for this repo.
 
 Refer to `frontend/README.md` and `backend/README.md` for directory-specific details.

@@ -4,6 +4,27 @@ import Parent from '../models/parent.js';
 import { generateToken } from "../utillity/jwt.js";
 import { sendTelegramNotification } from "../utillity/telegram.js";
 
+/** Verify that the child belongs to the parent making the request. Returns { parent, child } or sends 403/404 and returns null. */
+const ensureChildBelongsToParent = async (req, res, childEmail) => {
+  const parent = await Parent.findOne({ email: req.user.email });
+  if (!parent) {
+    res.status(404).json({ message: "Parent not found" });
+    return null;
+  }
+  const child = await Child.findOne({ email: childEmail });
+  if (!child) {
+    res.status(404).json({ message: "Child not found" });
+    return null;
+  }
+  const childId = child._id.toString();
+  const belongsToParent = parent.children.some(id => id.toString() === childId);
+  if (!belongsToParent) {
+    res.status(403).json({ message: "Access denied: child does not belong to this parent" });
+    return null;
+  }
+  return { parent, child };
+};
+
 // Create a new child for the parent
 export const createChild = async (req, res) => {
   const { name, email } = req.body;
@@ -43,7 +64,9 @@ export const createChild = async (req, res) => {
 // Get all children for logged-in parent
 export const getChildren = async (req, res) => {
   try {
-    const children = await Child.find({ parent: req.user.id });
+    const parent = await Parent.findOne({ email: req.user.email });
+    if (!parent) return res.status(404).json({ message: "Parent not found" });
+    const children = await Child.find({ _id: { $in: parent.children } });
     res.status(200).json(children);
   } catch (err) {
     res.status(500).json({ message: "Error fetching children", error: err.message });
@@ -53,8 +76,9 @@ export const getChildren = async (req, res) => {
 export const getWebUsageStats = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     const today = new Date().toISOString().split("T")[0];
     let totalSeconds = 0;
@@ -77,8 +101,9 @@ export const getWebUsageStats = async (req, res) => {
 export const getAlerts = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     res.json({ alerts: child.incognitoAlerts });
   } catch (err) {
@@ -89,8 +114,9 @@ export const getAlerts = async (req, res) => {
 export const getBlockedStats = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     res.json({ count: child.blockedUrls.length });
   } catch (err) {
@@ -101,8 +127,9 @@ export const getBlockedStats = async (req, res) => {
 export const getWebUsageStatsFull = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     const today = new Date().toISOString().split("T")[0];
     const webUsage = [];
@@ -138,8 +165,9 @@ export const getWebUsageStatsFull = async (req, res) => {
 export const getAlertsFull = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     const alerts = child.incognitoAlerts
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -159,8 +187,9 @@ export const getAlertsFull = async (req, res) => {
 export const clearAlerts = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     child.incognitoAlerts = []; // clear alerts
     await child.save();
@@ -176,8 +205,9 @@ export const clearAlerts = async (req, res) => {
 export const getBlockedStatsFull = async (req, res) => {
   try {
     const { email } = req.params;
-    const child = await Child.findOne({ email });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     const blocked = child.blockedUrls.map(url => ({
       domain: url,
@@ -191,12 +221,12 @@ export const getBlockedStatsFull = async (req, res) => {
 };
 export const getSearchActivities = async (req, res) => {
   try {
-    const { timeFrame } = req.body;
-    const { childEmail } = req.body;
+    const { timeFrame, childEmail } = req.body;
     if (!childEmail) return res.status(400).json({ message: "Child email is required" });
 
-    const child = await Child.findOne({ email: childEmail });
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    const result = await ensureChildBelongsToParent(req, res, childEmail);
+    if (!result) return;
+    const { child } = result;
 
     const dateLimit = (() => {
       const now = new Date();

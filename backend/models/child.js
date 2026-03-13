@@ -19,6 +19,7 @@ const childSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  parent: { type: mongoose.Schema.Types.ObjectId, ref: "Parent" },
   extensionToken: String,
   location: String,
   blockedUrls: [String],

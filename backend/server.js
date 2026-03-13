@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 import childRoutes from "./routes/child.js";
 import monitorRoutes from "./routes/monitorRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -8,9 +9,20 @@ import parentRoutes from "./routes/parentRoutes.js";
 import superSafeRoutes from "./routes/superSafeRoutes.js";
 import timedBlockRoutes from "./routes/timedBlockRoutes.js";
 import { startHeartbeatMonitor } from './utillity/cronMonitor.js';
+import { validateEnv } from './config/env.js';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
 dotenv.config();
 
+validateEnv();
+
 const app = express();
+
+// Rate limit for auth routes (prevent brute force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 requests per window per IP
+  message: { message: "Too many attempts. Please try again later." },
+});
 
 app.use(cors({
   origin(origin, callback) {
@@ -48,12 +60,15 @@ const connectDB = async () => {
 connectDB();
 
 
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/monitor", monitorRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/child", childRoutes);
 app.use("/api/parent", parentRoutes);
 app.use("/api/supersafe", superSafeRoutes);
 app.use("/api/timed-blocks", timedBlockRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

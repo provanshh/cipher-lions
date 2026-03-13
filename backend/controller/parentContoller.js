@@ -5,6 +5,46 @@ import { sendTelegramNotification } from '../utillity/telegram.js';
 import { logActivity } from '../utillity/activityService.js';
 import { generateToken } from '../utillity/jwt.js';
 
+/** Verify that the child belongs to the parent. Returns { parent, child } or sends 403/404 and returns null. */
+const ensureChildBelongsToParent = async (req, res, childId) => {
+  const parent = await Parent.findOne({ email: req.user.email });
+  if (!parent) {
+    res.status(404).json({ message: "Parent not found" });
+    return null;
+  }
+  const child = await Child.findById(childId);
+  if (!child) {
+    res.status(404).json({ message: "Child not found" });
+    return null;
+  }
+  const belongsToParent = parent.children.some(id => id.toString() === child._id.toString());
+  if (!belongsToParent) {
+    res.status(403).json({ message: "Access denied: child does not belong to this parent" });
+    return null;
+  }
+  return { parent, child };
+};
+
+/** For blockUrl/unblockUrl: verify child by email belongs to parent. */
+const ensureChildByEmailBelongsToParent = async (req, res, childEmail) => {
+  const parent = await Parent.findOne({ email: req.user.email });
+  if (!parent) {
+    res.status(404).json({ message: "Parent not found" });
+    return null;
+  }
+  const child = await Child.findOne({ email: childEmail });
+  if (!child) {
+    res.status(404).json({ message: "Child not found" });
+    return null;
+  }
+  const belongsToParent = parent.children.some(id => id.toString() === child._id.toString());
+  if (!belongsToParent) {
+    res.status(403).json({ message: "Access denied: child does not belong to this parent" });
+    return null;
+  }
+  return { parent, child };
+};
+
 // Get all children of a parent
 // controller
 export const getAllChildren = async (req, res) => {
@@ -39,11 +79,9 @@ export const getAllChildren = async (req, res) => {
 // Get details of a specific child
 export const getChildDetails = async (req, res) => {
   try {
-    const child = await Child.findById(req.params.id);
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
-    res.json(child);
+    const result = await ensureChildBelongsToParent(req, res, req.params.id);
+    if (!result) return;
+    res.json(result.child);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -52,11 +90,9 @@ export const getChildDetails = async (req, res) => {
 // Get monitored URLs for a specific child
 export const getChildUrls = async (req, res) => {
   try {
-    const child = await Child.findById(req.params.id);
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
-    res.json(child.monitoredUrls);
+    const result = await ensureChildBelongsToParent(req, res, req.params.id);
+    if (!result) return;
+    res.json(result.child.monitoredUrls);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -65,11 +101,9 @@ export const getChildUrls = async (req, res) => {
 // Get incognito alerts for a specific child
 export const getChildAlerts = async (req, res) => {
   try {
-    const child = await Child.findById(req.params.id);
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
-    res.json(child.incognitoAlerts);
+    const result = await ensureChildBelongsToParent(req, res, req.params.id);
+    if (!result) return;
+    res.json(result.child.incognitoAlerts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -78,12 +112,13 @@ export const getChildAlerts = async (req, res) => {
 // Block a URL for a specific child
 export const blockUrl = async (req, res) => {
   const { url, email } = req.body;
-
+  if (!email || !url) {
+    return res.status(400).json({ message: "URL and child email are required" });
+  }
   try {
-    const child = await Child.findOne({ email });
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
+    const result = await ensureChildByEmailBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     // Check if URL is already blocked
     if (!child.blockedUrls.includes(url)) {
@@ -109,12 +144,13 @@ export const blockUrl = async (req, res) => {
 // Unblock a URL for a specific child
 export const unblockUrl = async (req, res) => {
   const { url, email } = req.body;
-
+  if (!email || !url) {
+    return res.status(400).json({ message: "URL and child email are required" });
+  }
   try {
-    const child = await Child.findOne({ email });
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
+    const result = await ensureChildByEmailBelongsToParent(req, res, email);
+    if (!result) return;
+    const { child } = result;
 
     // Remove the blocked URL from the list
     child.blockedUrls = child.blockedUrls.filter(blockedUrl => blockedUrl !== url);
@@ -138,10 +174,9 @@ export const unblockUrl = async (req, res) => {
 // Reset time spent on monitored URLs for a specific child (every 2 days)
 export const resetTimeSpent = async (req, res) => {
   try {
-    const child = await Child.findById(req.params.id);
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
+    const result = await ensureChildBelongsToParent(req, res, req.params.id);
+    if (!result) return;
+    const { child } = result;
 
     // Reset the time spent for all monitored URLs
     child.monitoredUrls.forEach(url => {
@@ -185,11 +220,9 @@ export const getNotifications = async (req, res) => {
 // Generate a new JWT token for a specific child (for use in the browser extension)
 export const generateChildToken = async (req, res) => {
   try {
-    const child = await Child.findById(req.params.id);
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
-    const token = generateToken(child.email);
+    const result = await ensureChildBelongsToParent(req, res, req.params.id);
+    if (!result) return;
+    const token = generateToken(result.child.email);
     res.json({ token });
   } catch (err) {
     res.status(500).json({ message: err.message });

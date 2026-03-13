@@ -1,4 +1,34 @@
 const BACKEND_URL = "https://cipher-shds.onrender.com";
+const AGENT_URL = "http://127.0.0.1:3030";
+const HEARTBEAT_INTERVAL_MS = 5000;
+
+let agentAvailable = null;
+
+async function checkAgentHealth() {
+  try {
+    const res = await fetch(`${AGENT_URL}/health`, { method: "GET", signal: AbortSignal.timeout(2000) });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function sendToAgent(path, token, body) {
+  try {
+    const res = await fetch(`${AGENT_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 /* ================= HELPERS ================= */
 
@@ -194,14 +224,23 @@ async function updateActiveTabToBackend() {
     return;
   }
 
+  const payload = { domain, searchQuery, timeSpent: 60 };
   try {
+    if (agentAvailable !== false) {
+      const ok = await sendToAgent("/activity", token, { ...payload, url: tab.url, tabId: tab.id });
+      if (ok) {
+        agentAvailable = true;
+        return;
+      }
+      agentAvailable = false;
+    }
     await fetch(`${BACKEND_URL}/api/monitor/monitor-url`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ domain, searchQuery }),
+      body: JSON.stringify(payload),
     });
   } catch (err) {
     console.error("Active tab update failed", err);
@@ -331,6 +370,20 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 /* ================= PERIODIC MONITORING ================= */
 
 setInterval(updateActiveTabToBackend, 60000);
+
+// Desktop agent heartbeat: every 5 seconds
+setInterval(async () => {
+  if (agentAvailable === false) return;
+  const { token } = await chrome.storage.local.get("token");
+  if (!token) return;
+  const ok = await sendToAgent("/heartbeat", token, {});
+  agentAvailable = ok;
+}, HEARTBEAT_INTERVAL_MS);
+
+// Check agent on startup
+(async () => {
+  agentAvailable = await checkAgentHealth();
+})();
 
 // Initial sync when service worker starts, then every 2 minutes
 syncSuperSafeSettings();

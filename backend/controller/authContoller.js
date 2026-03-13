@@ -69,16 +69,14 @@ export const changePassword = async (req, res) => {
   }
 };
 
-export const getParent=async(req,res)=>{
-  
+export const getParent = async (req, res) => {
   try {
-
-  const email=req.user.email;
-  const parent=await Parent.findOne({email})
-     const { name } = parent;
+    const email = req.user.email;
+    const parent = await Parent.findOne({ email });
+    if (!parent) return res.status(404).json({ message: "User not found" });
+    const { name } = parent;
     res.json({ name, email });
-  
-} catch (error) {
-  res.status(500).json({ message: "Server error" });
-}
-}
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
