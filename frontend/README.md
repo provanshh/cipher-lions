@@ -1,7 +1,7 @@
 # CipherGuard Frontend
 
 CipherGuard Dashboard is a full-featured web dashboard for parental control, built using React, TypeScript, Vite, and Tailwind CSS. It allows parents to monitor, manage, and protect their children’s online activity across devices with a simple and interactive interface.
-             
+                
 This `frontend/` app consumes the CipherGuard backend REST API and presents a modern, responsive UI for parents.
  
 ## Key Features
