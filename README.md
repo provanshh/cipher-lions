@@ -1,5 +1,8 @@
 # CipherGuard
 
+### Frontend - https://cipher-flame-nine.vercel.app/
+### Explanatory Video - https://www.youtube.com/watch?v=q7_hN1c3RNs
+
 CipherGuard is a full-stack parental-control platform consisting of a browser-based dashboard and a Node.js/Express API backed by MongoDB. It enables parents to monitor, manage, and protect their children’s online activity across devices through real-time monitoring, URL blocking, and incognito alerts.
 
 This repository is a monorepo with separate frontend and backend applications:
