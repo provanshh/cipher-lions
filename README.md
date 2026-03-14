@@ -1,7 +1,8 @@
-# CipherGuard
+# CipherGuard - Team Phoenix 
 
-### Frontend - https://cipher-flame-nine.vercel.app/
-### Explanatory Video - https://www.youtube.com/watch?v=q7_hN1c3RNs
+#### Frontend - https://cipher-flame-nine.vercel.app/
+#### Explanatory Video - https://www.youtube.com/watch?v=q7_hN1c3RNs
+#### Cipherguard Chrome Extension + Desktop App 
 
 CipherGuard is a full-stack parental-control platform consisting of a browser-based dashboard and a Node.js/Express API backed by MongoDB. It enables parents to monitor, manage, and protect their children’s online activity across devices through real-time monitoring, URL blocking, and incognito alerts.
 
