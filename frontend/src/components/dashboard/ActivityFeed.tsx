@@ -2,6 +2,7 @@ import { Bell, ShieldBan, AlertTriangle, Activity, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNotifications } from "@/hooks/use-children";
+import { formatActivityTime } from "@/utils/formatActivityTime";
 
 const typeConfig: Record<string, { icon: React.ElementType; className: string }> = {
   BLOCKED_URL: { icon: ShieldBan, className: "bg-rose-500/10 text-rose-500" },
@@ -34,9 +35,10 @@ export function ActivityFeed() {
               </div>
             ))
           ) : items.length > 0 ? (
-            items.map((item: { id?: string; text?: string; time?: string; type?: string }, i) => {
+            items.map((item: { id?: string; text?: string; time?: string; timestamp?: string; type?: string }, i) => {
               const config = typeConfig[item.type ?? ""] ?? typeConfig.default;
               const Icon = config.icon;
+              const timeStr = item.timestamp ? formatActivityTime(item.timestamp) : (item.time ?? "");
               return (
                 <div
                   key={item.id ?? i}
@@ -47,8 +49,8 @@ export function ActivityFeed() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium leading-tight">{item.text ?? "Activity"}</p>
-                    {item.time && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.time}</p>
+                    {timeStr && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{timeStr}</p>
                     )}
                   </div>
                 </div>

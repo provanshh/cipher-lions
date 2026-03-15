@@ -27,6 +27,7 @@ import {
 import type { CategoryCount, MonitoredUrl } from "@/types/models";
 import { ActivityTable } from "@/components/dashboard/ActivityTable";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { formatActivityTime, formatActivityTableTime } from "@/utils/formatActivityTime";
 
 interface OverviewPanelProps {
   childEmail: string | null;
@@ -182,7 +183,7 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
                       Incognito Alert
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{alert.url || "Unknown URL"}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{new Date(alert.timestamp).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{formatActivityTime(alert.timestamp)}</p>
                   </div>
                 ))
               ) : (
@@ -317,7 +318,7 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
                         </div>
                         {search.lastUpdated && (
                           <p className="text-xs text-muted-foreground ml-5">
-                            {new Date(search.lastUpdated).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                            {formatActivityTableTime(search.lastUpdated)}
                           </p>
                         )}
                       </div>
@@ -367,7 +368,7 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm truncate">{a.domain}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {a.lastUpdated ? new Date(a.lastUpdated).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "Just now"}
+                        {a.lastUpdated ? formatActivityTableTime(a.lastUpdated) : "Just now"}
                       </p>
                     </div>
                   </div>
@@ -397,7 +398,7 @@ export function OverviewPanel({ childEmail, childName }: OverviewPanelProps) {
                       <Bell className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-destructive truncate">Incognito: {alert.url || "Unknown"}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{new Date(alert.timestamp).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{formatActivityTime(alert.timestamp)}</p>
                       </div>
                     </div>
                   </div>

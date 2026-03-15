@@ -202,12 +202,12 @@ export const getNotifications = async (req, res) => {
       .limit(20)
       .populate('child', 'name');
 
-    // Format logs for the frontend
+    // Format logs for the frontend (send ISO timestamp so frontend can show in user's timezone)
     const notifications = logs.map(log => ({
       id: log._id,
       text: `[${log.child?.name || 'Unknown'}] ${log.message}`,
-      time: new Date(log.timestamp).toLocaleString(),
-      read: false, // Default to false
+      timestamp: (log.timestamp instanceof Date ? log.timestamp : new Date(log.timestamp)).toISOString(),
+      read: false,
       type: log.type
     }));
 

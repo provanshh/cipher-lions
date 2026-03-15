@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActivities } from "@/hooks/use-children";
+import { formatActivityTableTime } from "@/utils/formatActivityTime";
 
 interface ActivityTableProps {
   childEmail: string | null;
@@ -68,10 +69,7 @@ export function ActivityTable({ childEmail }: ActivityTableProps) {
                     </div>
                     <div className="col-span-4 sm:col-span-3 flex items-center text-xs text-muted-foreground gap-1.5">
                       <Clock className="h-3 w-3 shrink-0" />
-                      {new Date(activity.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatActivityTableTime(activity.timestamp)}
                     </div>
                   </div>
                 );

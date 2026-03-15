@@ -19,6 +19,7 @@ import {
 import { ModeToggle } from "@/components/ModeToggle";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from "@/hooks/use-children";
+import { formatActivityTime } from "@/utils/formatActivityTime";
 import { toast } from "sonner";
 
 interface DashboardHeaderProps {
@@ -121,12 +122,15 @@ export function DashboardHeader({
             <DropdownMenuContent align="end" className="w-72">
               {items.length > 0 ? (
                 <div className="max-h-64 overflow-y-auto">
-                  {items.slice(0, 10).map((item: { id?: string; text?: string; time?: string }, i: number) => (
+                  {items.slice(0, 10).map((item: { id?: string; text?: string; time?: string; timestamp?: string }, i: number) => {
+                    const timeStr = item.timestamp ? formatActivityTime(item.timestamp) : (item.time ?? "");
+                    return (
                     <DropdownMenuItem key={item.id ?? i} className="flex flex-col items-start gap-0.5 py-2.5">
                       <span className="text-sm leading-tight">{item.text ?? "Notification"}</span>
-                      {item.time && <span className="text-xs text-muted-foreground">{item.time}</span>}
+                      {timeStr && <span className="text-xs text-muted-foreground">{timeStr}</span>}
                     </DropdownMenuItem>
-                  ))}
+                  );
+                  })}
                 </div>
               ) : (
                 <div className="p-3 text-center text-sm text-muted-foreground">
