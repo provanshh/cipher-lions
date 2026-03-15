@@ -35,7 +35,7 @@ app.use(cors({
     callback(null, allowed ? origin : false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Device-ID"],
   credentials: true,
 }));
 
@@ -43,8 +43,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static("uploads"));
 
-
-// app.use("/api/auth", authRoutes);
 import mongoose from "mongoose";
 
 const connectDB = async () => {

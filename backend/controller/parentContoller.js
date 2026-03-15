@@ -171,16 +171,16 @@ export const unblockUrl = async (req, res) => {
   }
 };
 
-// Reset time spent on monitored URLs for a specific child (every 2 days)
+// Reset time spent on monitored URLs for a specific child
 export const resetTimeSpent = async (req, res) => {
   try {
     const result = await ensureChildBelongsToParent(req, res, req.params.id);
     if (!result) return;
     const { child } = result;
 
-    // Reset the time spent for all monitored URLs
-    child.monitoredUrls.forEach(url => {
-      url.timeSpent = 0;
+    // Reset dailyTimeSpent (Map) for each monitored URL
+    child.monitoredUrls.forEach((urlObj) => {
+      urlObj.dailyTimeSpent = new Map();
     });
 
     await child.save();

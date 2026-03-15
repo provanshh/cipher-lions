@@ -107,10 +107,10 @@ export const deleteAllowedSite = async (req, res) => {
     const parent = await Parent.findOne({ email: req.user.email });
     if (!parent) return res.status(404).json({ message: "Parent not found" });
     const site = await AllowedSite.findOne({ _id: req.params.id, parent: parent._id });
-    const siteDomain = site?.domain || "unknown";
-    await AllowedSite.deleteOne({ _id: req.params.id, parent: parent._id });
+    if (!site) return res.status(404).json({ message: "Allowed site not found" });
 
-    await sendTelegramNotification(req.user.email, `🗑️ SuperSafe: ${siteDomain} removed from allowed sites`);
+    await AllowedSite.deleteOne({ _id: req.params.id, parent: parent._id });
+    await sendTelegramNotification(req.user.email, `🗑️ SuperSafe: ${site.domain} removed from allowed sites`);
 
     res.status(204).end();
   } catch (err) {
