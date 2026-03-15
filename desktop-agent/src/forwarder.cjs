@@ -7,27 +7,34 @@ function createForwarder(backendUrl, deviceId) {
     headers: { "Content-Type": "application/json", "X-Device-ID": deviceId || "" },
   });
 
+  function authHeader(token) {
+    if (!token || typeof token !== "string") return {};
+    const raw = token.trim().replace(/^Bearer\s+/i, "");
+    if (!raw) return {};
+    return { Authorization: `Bearer ${raw}` };
+  }
+
   async function forwardMonitorUrl(token, payload) {
     await api.post("/api/monitor/monitor-url", payload, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
     });
   }
 
   async function sendTamperAlert(token) {
     await api.post("/api/monitor/tamper-alert", {}, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
     });
   }
 
   async function sendTamperAlertFailed(token) {
     await api.post("/api/monitor/tamper-alert-failed", {}, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
     });
   }
 
   async function sendAgentEvent(token, type) {
     await api.post("/api/monitor/agent-event", { type }, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
     });
   }
 

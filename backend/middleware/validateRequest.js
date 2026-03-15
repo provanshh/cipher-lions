@@ -13,7 +13,10 @@ export const schemas = {
   }),
   addChild: Joi.object({
     name: Joi.string().trim().min(1).max(100).required(),
-    email: Joi.string().email().required(),
+    // Allow real emails and internal addresses like name@cipherguard.local
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
   }),
   changePassword: Joi.object({
     currentPassword: Joi.string().required(),
